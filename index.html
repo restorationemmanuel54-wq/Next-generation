@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nexora Deployment</title>
+<title>Nexora V2 Premium</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 <script src="/socket.io/socket.io.js"></script>
 
@@ -30,7 +30,18 @@ section{
 
 h1{
     font-size:40px;
-    margin-top:100px;
+    margin-top:30px;
+}
+
+.scroll-text{
+    margin-top:50px;
+    opacity:0.7;
+    animation:float 2s infinite alternate;
+}
+
+@keyframes float{
+    from{transform:translateY(0px)}
+    to{transform:translateY(10px)}
 }
 
 button{
@@ -41,30 +52,11 @@ button{
     font-weight:600;
     cursor:pointer;
     margin-top:20px;
+    transition: all 0.3s;
 }
 
-input{
-    padding:12px;
-    width:250px;
-    border-radius:10px;
-    border:none;
-    margin-top:15px;
-}
-
-.scroll-text{
-    margin-top:120px;
-    opacity:0.7;
-    animation:float 2s infinite alternate;
-}
-
-@keyframes float{
-    from{transform:translateY(0px)}
-    to{transform:translateY(10px)}
-}
-
-#qrImage{
-    width:250px;
-    margin-top:20px;
+button:hover{
+    transform:scale(1.05);
 }
 
 #miniAI{
@@ -77,6 +69,7 @@ input{
     background:radial-gradient(circle,gold,orange);
     box-shadow:0 0 20px gold;
     animation:pulse 1.5s infinite;
+    cursor:pointer;
 }
 
 @keyframes pulse{
@@ -84,102 +77,120 @@ input{
     50%{box-shadow:0 0 25px gold}
     100%{box-shadow:0 0 10px gold}
 }
+
+#hero img{
+    width:200px;
+    border-radius:15px;
+    margin-top:50px;
+    box-shadow:0 0 20px gold;
+}
+
+input{
+    padding:10px;
+    border-radius:10px;
+    border:none;
+    margin:10px;
+    width:250px;
+}
+
+#qrContainer img{
+    margin-top:20px;
+    width:250px;
+}
+
+#pairCode{
+    margin-top:20px;
+    font-weight:bold;
+    color:gold;
+}
 </style>
 </head>
-
 <body>
 
 <!-- HERO -->
 <section id="hero">
-    <h1>Welcome to Nexora ⚡</h1>
-    <p>Next-Generation Operations & Responsive AI</p>
+    <img src="https://i.postimg.cc/qqfKZcJ5/IMG-20260228-WA0002.png" alt="Nexora Logo">
+    <h1>Welcome to Nexora V2 Premium</h1>
     <div class="scroll-text">⬇ Scroll Down To Deploy ⬇</div>
     <br>
     <button onclick="goDeploy()">Initialize Deployment</button>
 </section>
 
-<!-- AUTH KEY -->
-<section id="authSection">
-    <h2>Enter Your Access Key</h2>
-    <input type="text" id="authKey" placeholder="Enter your key">
+<!-- MINI AI -->
+<div id="miniAI" title="Ask Nexora AI"></div>
+
+<!-- DEPLOY SECTION -->
+<section id="deploy">
+    <h2>Login to Deploy</h2>
+    <input id="userId" placeholder="Enter Username">
     <br>
-    <button onclick="validateKey()">Continue</button>
+    <button onclick="startQR()">Login with QR</button>
+    <br><br>
+    <input id="phone" placeholder="+234XXXXXXXXXX">
+    <br>
+    <button onclick="startCode()">Login with Code</button>
+    <br><br>
+    <div id="qrContainer"></div>
+    <h3 id="pairCode"></h3>
+    <p id="status"></p>
 </section>
-
-<!-- LOGIN CHOICE -->
-<section id="loginChoice">
-    <h2>Select Login Method</h2>
-    <button onclick="startQR()">QR Login</button>
-    <button onclick="startCode()">Code Login</button>
-</section>
-
-<!-- QR SECTION -->
-<section id="qrSection">
-    <h2>Scan QR Code</h2>
-    <img id="qrImage" src="">
-    <p id="qrStatus"></p>
-</section>
-
-<!-- CODE SECTION -->
-<section id="codeSection">
-    <h2>Enter Pairing Code</h2>
-    <h1 id="pairCode"></h1>
-    <p id="codeStatus"></p>
-</section>
-
-<!-- SESSION CONNECTED -->
-<section id="connectedSection">
-    <h2>✅ Bot Connected Successfully</h2>
-    <p>Your Nexora instance is now live.</p>
-</section>
-
-<div id="miniAI"></div>
 
 <script>
 const socket = io();
-let currentKey = "";
 
+/* ---------- SECTION CONTROL ---------- */
 function showSection(id){
     document.querySelectorAll("section").forEach(sec=>sec.style.display="none");
     document.getElementById(id).style.display="block";
 }
 
 function goDeploy(){
-    showSection("authSection");
+    showSection("deploy");
 }
 
-function validateKey(){
-    const key = document.getElementById("authKey").value;
-    if(!key) return alert("Enter a valid key");
-    currentKey = key;
-    showSection("loginChoice");
-}
-
+/* ---------- QR LOGIN ---------- */
 function startQR(){
-    showSection("qrSection");
-    socket.emit("start-qr",{userId:currentKey});
+    const userId = document.getElementById("userId").value;
+    if(!userId) return alert("Enter username");
+    socket.emit("start-qr",{ userId });
 }
 
+/* ---------- CODE LOGIN ---------- */
 function startCode(){
-    showSection("codeSection");
-    socket.emit("start-code",{userId:currentKey});
+    const userId = document.getElementById("userId").value;
+    const phone = document.getElementById("phone").value;
+    if(!userId || !phone) return alert("Enter username & phone number");
+    socket.emit("start-code",{ userId, phone });
 }
 
-socket.on("qr",(data)=>{
-    document.getElementById("qrImage").src = data;
+/* ---------- SOCKET LISTENERS ---------- */
+socket.on("qr",(qrImage)=>{
+    document.getElementById("qrContainer").innerHTML =
+        `<img src="${qrImage}" alt="QR Code">`;
 });
 
-socket.on("pairing-code",(code)=>{
-    document.getElementById("pairCode").innerText = code;
-});
-
-socket.on("connected",()=>{
-    showSection("connectedSection");
+socket.on("pair-code",(code)=>{
+    document.getElementById("pairCode").innerText =
+        "Pairing Code: " + code;
 });
 
 socket.on("status",(msg)=>{
-    document.getElementById("qrStatus").innerText = msg;
-    document.getElementById("codeStatus").innerText = msg;
+    document.getElementById("status").innerText = msg;
+});
+
+/* ---------- MINI AI ---------- */
+document.getElementById("miniAI").addEventListener("click", async ()=>{
+    const question = prompt("Ask Nexora AI about your bot:");
+    if(!question) return;
+
+    const res = await fetch("/ask-ai",{
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({ question })
+    });
+
+    const data = await res.json();
+    alert(data.answer);
 });
 </script>
 
