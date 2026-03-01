@@ -18,7 +18,7 @@ body{
     position:relative;
 }
 
-/* BACKGROUND LINES ANIMATION */
+/* BACKGROUND LINES */
 canvas#bgLines{
     position:fixed;
     top:0;
@@ -176,6 +176,26 @@ input{
     width:100%;
     margin-top:10px;
 }
+
+/* DEPLOY POPUP */
+#deployPopup{
+    position:fixed;
+    top:-100px;
+    left:50%;
+    transform:translateX(-50%);
+    background:gold;
+    color:#000;
+    padding:20px 50px;
+    border-radius:15px;
+    font-weight:bold;
+    box-shadow:0 0 20px gold;
+    transition: all 0.8s ease;
+    z-index:1001;
+}
+
+#deployPopup.show{
+    top:50px;
+}
 </style>
 </head>
 <body>
@@ -226,6 +246,9 @@ input{
     <a href="https://whatsapp.com/channel/0029VbCFEZv60eBdlqXqQz20" target="_blank" style="color:gold;">Join our WhatsApp Channel</a>
 </section>
 
+<!-- DEPLOY POPUP -->
+<div id="deployPopup">🚀 Nexora Deployed!</div>
+
 <!-- MINI AI -->
 <div id="miniAI" title="Ask Nexora AI">🤖</div>
 <div id="aiPopup">
@@ -237,43 +260,49 @@ input{
 <script>
 const socket = io();
 
-/* ---------- BACKGROUND LINES ---------- */
+/* ---------- BACKGROUND LINES SMOOTH FUTURISTIC ---------- */
 const canvas = document.getElementById("bgLines");
 const ctx = canvas.getContext("2d");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-let lines = [];
-for(let i=0;i<50;i++){
-    lines.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, vx:(Math.random()-0.5)*0.5, vy:(Math.random()-0.5)*0.5});
+let points = [];
+for(let i=0;i<40;i++){
+    points.push({
+        x:Math.random()*canvas.width,
+        y:Math.random()*canvas.height,
+        vx:(Math.random()-0.5)*0.3,
+        vy:(Math.random()-0.5)*0.3
+    });
 }
 
-function animateLines(){
+function drawLines(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
     ctx.strokeStyle='gold';
-    ctx.lineWidth=1;
-    for(let i=0;i<lines.length;i++){
-        let l=lines[i];
-        ctx.beginPath();
-        ctx.moveTo(l.x,l.y);
-        for(let j=i+1;j<lines.length;j++){
-            let l2=lines[j];
-            let dx=l2.x-l.x;
-            let dy=l2.y-l.y;
+    ctx.lineWidth=0.8;
+
+    for(let i=0;i<points.length;i++){
+        let p=points[i];
+        for(let j=i+1;j<points.length;j++){
+            let p2=points[j];
+            let dx=p2.x-p.x;
+            let dy=p2.y-p.y;
             let dist=Math.sqrt(dx*dx+dy*dy);
-            if(dist<150){
-                ctx.lineTo(l2.x,l2.y);
+            if(dist<180){
+                ctx.beginPath();
+                ctx.moveTo(p.x,p.y);
+                ctx.lineTo(p2.x,p2.y);
+                ctx.stroke();
             }
         }
-        ctx.stroke();
-        l.x+=l.vx;
-        l.y+=l.vy;
-        if(l.x<0||l.x>canvas.width) l.vx*=-1;
-        if(l.y<0||l.y>canvas.height) l.vy*=-1;
+        p.x+=p.vx;
+        p.y+=p.vy;
+        if(p.x<0||p.x>canvas.width) p.vx*=-1;
+        if(p.y<0||p.y>canvas.height) p.vy*=-1;
     }
-    requestAnimationFrame(animateLines);
+    requestAnimationFrame(drawLines);
 }
-animateLines();
+drawLines();
 
 /* ---------- SECTION CONTROL ---------- */
 function showSection(id){
@@ -288,7 +317,6 @@ function goAuth(){ showSection("authKey"); }
 function validateKey(){
     const key = document.getElementById("authInput").value.trim();
     if(!key) return alert("Enter your key");
-    // Fake validation (replace with backend API)
     if(key==="VALIDKEY123"){
         document.getElementById("statusMsg").innerText="✅ Key Valid!";
         document.getElementById("statusMsg").style.opacity=1;
@@ -321,8 +349,13 @@ function finishLogin(){ showSection("sessionDeploy"); }
 function deploySession(){
     const sessionId = document.getElementById("sessionId").value.trim();
     if(!sessionId) return alert("Enter session ID");
-    document.getElementById("statusMsg2").innerText="🚀 Nexora Deployed Successfully!";
-    document.getElementById("statusMsg2").style.opacity=1;
+
+    const popup = document.getElementById("deployPopup");
+    popup.classList.add("show");
+
+    setTimeout(()=>{
+        popup.classList.remove("show");
+    },3000);
 }
 
 /* ---------- SOCKET LISTENERS ---------- */
