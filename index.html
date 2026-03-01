@@ -37,64 +37,11 @@ body::after{
   padding:60px 20px;
 }
 
-/* Floating Hacker Image */
 .hero img{
   width:100%;
   max-width:320px;
   border-radius:15px;
   box-shadow:0 0 40px #00ff99;
-  animation: floatImg 4s ease-in-out infinite;
-}
-
-@keyframes floatImg{
-  0%{transform:translateY(0);}
-  50%{transform:translateY(-15px);}
-  100%{transform:translateY(0);}
-}
-
-/* Glitch Title */
-.glitch{
-  font-size:32px;
-  margin-top:25px;
-  position:relative;
-  color:#00ff99;
-  animation: flicker 2s infinite alternate;
-}
-
-@keyframes flicker{
-  0%{opacity:1;}
-  50%{opacity:0.8;}
-  100%{opacity:1;}
-}
-
-/* Subtext */
-.subtext{
-  margin-top:15px;
-  font-size:15px;
-  color:#00cc88;
-  max-width:420px;
-  margin-left:auto;
-  margin-right:auto;
-  line-height:1.6;
-}
-
-/* Scroll Indicator */
-.scroll-down{
-  margin-top:40px;
-  font-size:14px;
-  opacity:0.7;
-  animation: blink 1.5s infinite;
-}
-
-@keyframes blink{
-  50%{opacity:0.3;}
-}
-
-/* DEPLOY SECTION */
-.deploy-section{
-  margin-top:100px;
-  text-align:center;
-  padding-bottom:100px;
 }
 
 .deploy-btn{
@@ -113,45 +60,174 @@ body::after{
   background:#00ff99;
   color:black;
   box-shadow:0 0 30px #00ff99;
-  transform:scale(1.08);
+}
+
+/* Sections */
+.section{
+  display:none;
+  text-align:center;
+  padding:40px 20px;
+}
+
+input{
+  padding:12px;
+  width:80%;
+  border-radius:8px;
+  border:none;
+  margin-bottom:15px;
+}
+
+/* ===== MINI AI BUTTON ===== */
+
+#aiButton{
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  width:70px;
+  height:70px;
+  border-radius:50%;
+  background:black;
+  border:2px solid #00ff99;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  box-shadow:0 0 25px #00ff99;
+  animation: pulseGlow 2s infinite alternate;
+  z-index:1000;
+}
+
+#aiButton img{
+  width:40px;
+}
+
+@keyframes pulseGlow{
+  0%{ box-shadow:0 0 15px #00ff99; }
+  100%{ box-shadow:0 0 40px #00ff99; }
+}
+
+/* AI PANEL */
+#aiPanel{
+  position:fixed;
+  bottom:100px;
+  right:-400px;
+  width:300px;
+  background:black;
+  border:1px solid #00ff99;
+  border-radius:12px;
+  padding:15px;
+  transition:0.4s;
+  box-shadow:0 0 30px #00ff99;
+  z-index:999;
+}
+
+#aiPanel.active{
+  right:20px;
+}
+
+#aiPanel textarea{
+  width:100%;
+  height:60px;
+  background:black;
+  color:#00ff99;
+  border:1px solid #00ff99;
+  border-radius:6px;
+  padding:8px;
+}
+
+#aiPanel button{
+  margin-top:10px;
+  width:100%;
+  background:#00ff99;
+  border:none;
+  padding:8px;
+  cursor:pointer;
+  border-radius:6px;
+}
+
+#aiResponse{
+  margin-top:10px;
+  font-size:13px;
+  color:#00cc88;
 }
 </style>
 </head>
 
 <body>
 
-<div class="hero">
-
+<!-- HERO -->
+<div class="hero" id="heroSection">
   <img src="https://i.postimg.cc/qqfKZcJ5/IMG-20260228-WA0002.png">
-
-  <div class="glitch">
-    NEXORA V2 :: PREMIUM CONSOLE
-  </div>
-
-  <div class="subtext">
-    Initializing Secure Automation Framework...<br><br>
-    Nexora V2 is not just a bot system.<br>
-    It is a command-level WhatsApp automation engine.<br><br>
-    Deploy securely. Authenticate instantly.<br>
-    Control everything.
-  </div>
-
-  <div class="scroll-down">
-    ▼ Scroll Down To Deploy ▼
-  </div>
-
-</div>
-
-
-<div class="deploy-section">
+  <h2>NEXORA V2 :: PREMIUM CONSOLE</h2>
+  <br>
   <button class="deploy-btn" onclick="showDeploy()">Initialize Deployment 🚀</button>
 </div>
 
+<!-- AUTH -->
+<div class="section" id="authSection">
+  <h2>Enter Authorization Key</h2>
+  <input id="authKey" placeholder="Enter Authorization Key">
+  <button class="deploy-btn" onclick="validateKey()">Continue</button>
+</div>
+
+<!-- QR -->
+<div class="section" id="qrSection">
+  <h2>Scan QR Code</h2>
+  <img id="qrImg" width="250">
+</div>
+
+<!-- MINI AI BUTTON -->
+<div id="aiButton" onclick="toggleAI()">
+  <img src="https://cdn-icons-png.flaticon.com/512/4712/4712109.png">
+</div>
+
+<!-- AI PANEL -->
+<div id="aiPanel">
+  <textarea id="aiInput" placeholder="Ask about Nexora bot..."></textarea>
+  <button onclick="askAI()">Send</button>
+  <div id="aiResponse"></div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
 
 <script>
+const socket = io();
+
 function showDeploy(){
-  alert("Deployment system loading...");
-  // Your existing deploy flow continues
+  document.getElementById("heroSection").style.display="none";
+  document.getElementById("authSection").style.display="block";
+}
+
+function validateKey(){
+  const key = document.getElementById("authKey").value.trim();
+  if(!key) return alert("Enter valid key.");
+
+  document.getElementById("authSection").style.display="none";
+  document.getElementById("qrSection").style.display="block";
+
+  socket.emit("start-qr",{ userId:key });
+}
+
+socket.on("qr",(qrImage)=>{
+  document.getElementById("qrImg").src = qrImage;
+});
+
+function toggleAI(){
+  document.getElementById("aiPanel").classList.toggle("active");
+}
+
+async function askAI(){
+  const input = document.getElementById("aiInput").value;
+  if(!input) return;
+
+  const res = await fetch("/ask-ai",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({ question: input })
+  });
+
+  const data = await res.json();
+  document.getElementById("aiResponse").innerText = data.answer;
 }
 </script>
 
