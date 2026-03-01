@@ -1,96 +1,49 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nexora V2 Panel</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-<script src="/socket.io/socket.io.js"></script>
-<style>
-body{
-    margin:0;
-    font-family:'Poppins',sans-serif;
-    background:#000;
-    color:#fff;
-    text-align:center;
-}
-button{
-    padding:12px 25px;
-    border:none;
-    border-radius:25px;
-    background:gold;
-    font-weight:600;
-    cursor:pointer;
-    margin:10px;
-}
-#codeDisplay{
-    margin-top:15px;
-    font-size:18px;
-    color:#0f0;
-    font-weight:bold;
-}
-#qrContainer img{
-    margin-top:20px;
-    width:250px;
-}
-#status{
-    margin-top:15px;
-    font-weight:bold;
-    color:gold;
-}
-</style>
-</head>
-<body>
-
-<h1>Nexora V2 Bot Panel</h1>
-
-<section id="loginChoice">
-    <h2>Login Method</h2>
-    <button onclick="startQR()">QR Login</button>
-    <br><br>
-    <input id="phone" placeholder="+234XXXXXXXXXX">
-    <button onclick="startCode()">Code Login</button>
-    <div id="codeDisplay"></div>
-    <div id="qrContainer"></div>
-    <p id="status"></p>
-</section>
-
+<!-- Inside your <script> at the bottom -->
 <script>
 const socket = io();
 
-function startQR(){
-    socket.emit("start-qr");
+/* ---------- SECTION CONTROL ---------- */
+function showSection(id){
+    document.querySelectorAll("section").forEach(sec=>sec.style.display="none");
+    document.getElementById(id).style.display="block";
 }
 
-function startCode(){
-    const phone = document.getElementById("phone").value.trim();
-    if(!phone) return alert("Enter phone number");
-    socket.emit("start-code", { phone });
+/* ---------- HERO -> LOGIN ---------- */
+function startQRLogin(){
+    const userId = document.getElementById("userId").value.trim();
+    if(!userId) return alert("Enter your WhatsApp number");
+    socket.emit("start-qr", { userId });
+    showSection("qrSection");
 }
 
-// Show QR image
+function startCodeLogin(){
+    const userId = document.getElementById("userId").value.trim();
+    if(!userId) return alert("Enter your WhatsApp number");
+    socket.emit("start-code", { userId });
+    showSection("codeSection");
+}
+
+/* ---------- SOCKET.IO ---------- */
 socket.on("qr", qrImage => {
-    document.getElementById("qrContainer").innerHTML = `<img src="${qrImage}" alt="QR Code">`;
+    document.getElementById("qrContainer").innerHTML = `<img src="${qrImage}" width="250"/>`;
 });
 
-// Show 8-digit pairing code with copy button
 socket.on("pair-code", code => {
-    document.getElementById("codeDisplay").innerHTML = `
-        8-digit Code: <span id="codeText">${code}</span>
-        <button onclick="copyCode()">Copy</button>`;
+    const codeContainer = document.getElementById("codeContainer");
+    codeContainer.innerHTML = `
+        <input value="${code}" id="pairCodeInput" readonly style="width:150px; text-align:center; font-weight:bold;"/>
+        <button onclick="copyCode()">Copy</button>
+    `;
 });
 
 function copyCode(){
-    const text = document.getElementById("codeText").innerText;
-    navigator.clipboard.writeText(text);
-    alert("Code copied to clipboard!");
+    const codeInput = document.getElementById("pairCodeInput");
+    codeInput.select();
+    document.execCommand("copy");
+    alert("Code copied!");
 }
 
-// Status messages
 socket.on("status", msg => {
-    document.getElementById("status").innerText = msg;
+    document.getElementById("statusMsg").innerText = msg;
 });
 </script>
-
-</body>
-</html>
