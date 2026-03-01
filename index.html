@@ -6,239 +6,159 @@
 <title>Nexora V2 Premium</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 <script src="/socket.io/socket.io.js"></script>
-
 <style>
-body{
-    margin:0;
-    font-family:'Poppins',sans-serif;
-    background:#000;
-    color:#fff;
-    overflow-x:hidden;
-    text-align:center;
-    position:relative;
-}
+/* --------- RESET --------- */
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
+body{background:#000;color:#fff;overflow-x:hidden;}
 
+/* --------- BACKGROUND --------- */
 canvas#bgLines{
-    position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    z-index:-1;
+    position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;
 }
 
+/* --------- GENERAL SECTION --------- */
 section{
-    padding:80px 20px;
+    padding:60px 20px;
     display:none;
+    max-width:900px;
+    margin:0 auto;
+    border-radius:15px;
+    backdrop-filter:blur(12px);
+    background:rgba(20,20,20,0.65);
+    border:1px solid rgba(255,215,0,0.3);
+    box-shadow:0 0 25px rgba(255,215,0,0.3);
+    transition: all 0.8s ease;
+}
+
+/* --------- HERO --------- */
+#hero{
+    display:block;height:100vh;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+#hero img{
+    width:200px;border-radius:15px;box-shadow:0 0 25px gold;margin-bottom:20px;
     transition: all 0.5s ease;
 }
-
-#hero{
-    display:block;
-    height:100vh;
-    background:linear-gradient(180deg,#000,#111);
-}
-
-h1{
-    font-size:40px;
-    margin-top:30px;
-    text-shadow: 0 0 20px gold;
-}
-
+#hero img:hover{transform:scale(1.05);box-shadow:0 0 50px gold;}
+h1{font-size:48px;text-shadow:0 0 25px gold;margin-bottom:20px;transition:0.5s;}
 .scroll-text{
-    margin-top:50px;
-    opacity:0.7;
+    opacity:0.8;font-size:18px;
     animation:float 2s infinite alternate;
 }
+@keyframes float{0%{transform:translateY(0)}100%{transform:translateY(12px)}}
 
-@keyframes float{
-    from{transform:translateY(0px)}
-    to{transform:translateY(10px)}
-}
-
+/* --------- BUTTONS --------- */
 button{
-    padding:12px 30px;
-    border:none;
-    border-radius:30px;
-    background:gold;
+    padding:14px 35px;border:none;border-radius:30px;
     font-weight:600;
     cursor:pointer;
-    margin-top:20px;
-    transition: all 0.3s;
-    box-shadow:0 0 15px gold;
+    color:#000;
+    background:linear-gradient(45deg,gold,orange);
+    box-shadow:0 0 20px gold;
+    transition: all 0.4s;
 }
+button:hover{transform:scale(1.1);box-shadow:0 0 35px gold;}
 
-button:hover{
-    transform:scale(1.1);
-    box-shadow:0 0 30px gold;
+/* --------- INPUTS --------- */
+input{
+    padding:12px;border-radius:12px;border:none;
+    width:250px;background:rgba(30,30,30,0.8);
+    color:#fff;outline:none;margin:10px 0;
+    box-shadow:0 0 15px rgba(255,215,0,0.2);
+    transition:0.3s;
 }
+input:focus{box-shadow:0 0 25px gold;}
 
+/* --------- STATUS & PAIR CODE --------- */
+#statusMsg,#statusMsg2,#pairCode,#status{
+    margin-top:12px;font-weight:bold;opacity:0;transition:0.5s;
+}
+#pairCode{color:gold;opacity:1;}
+
+/* --------- DEPLOY POPUP --------- */
+#deployPopup{
+    position:fixed;top:-100px;left:50%;transform:translateX(-50%);
+    background:gold;color:#000;padding:20px 50px;
+    border-radius:15px;font-weight:bold;
+    box-shadow:0 0 25px gold;
+    transition: all 0.8s ease;z-index:1001;
+}
+#deployPopup.show{top:50px;}
+
+/* --------- MINI AI --------- */
 #miniAI{
-    position:fixed;
-    bottom:30px;
-    right:30px;
-    width:70px;
-    height:70px;
+    position:fixed;bottom:30px;right:30px;width:70px;height:70px;
     border-radius:50%;
     background:radial-gradient(circle,gold,orange);
-    box-shadow:0 0 20px gold;
-    animation:pulse 1.5s infinite;
-    cursor:pointer;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    font-size:30px;
-    font-weight:bold;
-}
-
-@keyframes pulse{
-    0%{box-shadow:0 0 10px gold}
-    50%{box-shadow:0 0 25px gold}
-    100%{box-shadow:0 0 10px gold}
-}
-
-#hero img{
-    width:200px;
-    border-radius:15px;
-    margin-top:50px;
-    box-shadow:0 0 20px gold;
-}
-
-input{
-    padding:10px;
-    border-radius:10px;
-    border:none;
-    margin:10px;
-    width:250px;
-    outline:none;
-}
-
-#qrContainer img{
-    margin-top:20px;
-    width:250px;
-}
-
-#pairCode{
-    margin-top:20px;
-    font-weight:bold;
-    color:gold;
-}
-
-#statusMsg{
-    margin-top:10px;
-    font-weight:bold;
-    color:#0f0;
-    opacity:0;
-    transition: all 0.5s ease;
-}
-
-#deployBtn{
-    background:linear-gradient(45deg,gold,orange);
-    animation:shine 2s infinite alternate;
-}
-
-@keyframes shine{
-    from{box-shadow:0 0 10px gold}
-    to{box-shadow:0 0 30px orange}
-}
-
-#aiPopup{
-    position:fixed;
-    bottom:120px;
-    right:30px;
-    width:300px;
-    max-width:90%;
-    background:#111;
-    border:2px solid gold;
-    border-radius:15px;
-    padding:20px;
-    display:none;
-    flex-direction:column;
     box-shadow:0 0 25px gold;
-    z-index:1000;
+    animation:pulse 1.5s infinite;
+    cursor:pointer;display:flex;justify-content:center;align-items:center;font-size:32px;font-weight:bold;
 }
-
+@keyframes pulse{0%{box-shadow:0 0 15px gold}50%{box-shadow:0 0 35px gold}100%{box-shadow:0 0 15px gold;}}
+#aiPopup{
+    position:fixed;bottom:120px;right:30px;width:320px;max-width:90%;
+    background:rgba(15,15,15,0.95);border:2px solid gold;
+    border-radius:15px;padding:20px;display:none;flex-direction:column;
+    box-shadow:0 0 35px gold;z-index:1000;backdrop-filter:blur(10px);
+}
 #aiPopup textarea{
-    width:100%;
-    height:60px;
-    border-radius:10px;
-    border:none;
-    padding:10px;
-    resize:none;
-    background:#222;
-    color:#fff;
+    width:100%;height:70px;border-radius:12px;border:none;padding:12px;background:rgba(30,30,30,0.9);color:#fff;resize:none;
 }
+#aiPopup button{width:100%;margin-top:10px;}
 
-#aiPopup button{
-    width:100%;
-    margin-top:10px;
-}
+/* --------- GLASS CARD ANIMATION --------- */
+section.showSection{opacity:1;transform:translateY(0);}
+section.hideSection{opacity:0;transform:translateY(50px);}
 
-#deployPopup{
-    position:fixed;
-    top:-100px;
-    left:50%;
-    transform:translateX(-50%);
-    background:gold;
-    color:#000;
-    padding:20px 50px;
-    border-radius:15px;
-    font-weight:bold;
-    box-shadow:0 0 20px gold;
-    transition: all 0.8s ease;
-    z-index:1001;
-}
-
-#deployPopup.show{
-    top:50px;
-}
+/* --------- CANVAS LINES --------- */
 </style>
 </head>
 <body>
 
+<!-- BACKGROUND -->
 <canvas id="bgLines"></canvas>
 
+<!-- HERO -->
 <section id="hero">
     <img src="https://i.postimg.cc/qqfKZcJ5/IMG-20260228-WA0002.png" alt="Nexora Logo">
     <h1>Welcome to Nexora V2 Premium</h1>
     <div class="scroll-text">⬇ Scroll Down To Deploy ⬇</div>
-    <br>
     <button onclick="goAuth()">Initialize Deployment</button>
 </section>
 
+<!-- AUTH KEY -->
 <section id="authKey">
     <h2>Enter Authorization Key</h2>
     <input id="authInput" placeholder="Enter Your Key">
-    <br>
     <button onclick="validateKey()" id="deployBtn">Deploy</button>
     <p id="statusMsg"></p>
 </section>
 
+<!-- LOGIN CHOICE -->
 <section id="loginChoice">
     <h2>Choose Login Method</h2>
     <button onclick="startQR()">QR Login</button>
-    <br><br>
     <input id="phone" placeholder="+234XXXXXXXXXX">
     <button onclick="startCode()">Code Login</button>
-    <br><br>
     <button onclick="finishLogin()">Finish Deployment</button>
     <div id="qrContainer"></div>
     <h3 id="pairCode"></h3>
     <p id="status"></p>
 </section>
 
+<!-- SESSION DEPLOY -->
 <section id="sessionDeploy">
     <h2>Session ID</h2>
     <input id="sessionId" placeholder="Paste Session ID Here">
-    <br>
     <button onclick="deploySession()" id="deployBtn">Deploy 🚀</button>
     <p id="statusMsg2"></p>
-    <br>
-    <a href="https://whatsapp.com/channel/0029VbCFEZv60eBdlqXqQz20" target="_blank" style="color:gold;">Join our WhatsApp Channel</a>
+    <a href="https://whatsapp.com/channel/0029VbCFEZv60eBdlqXqQz20" target="_blank" style="color:gold;">Join WhatsApp Channel</a>
 </section>
 
+<!-- DEPLOY POPUP -->
 <div id="deployPopup">🚀 Nexora Deployed!</div>
 
+<!-- MINI AI -->
 <div id="miniAI" title="Ask Nexora AI">🤖</div>
 <div id="aiPopup">
     <textarea id="aiQuestion" placeholder="Ask about Nexora bot..."></textarea>
@@ -249,82 +169,60 @@ input{
 <script>
 const socket = io();
 
-/* ---------- BACKGROUND LINES REDUCED ---------- */
+/* ---------- BACKGROUND LINES ---------- */
 const canvas = document.getElementById("bgLines");
 const ctx = canvas.getContext("2d");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-let points = [];
-for(let i=0;i<10;i++){ // 40 -> 10 points (~77% reduction)
-    points.push({
-        x: Math.random()*canvas.width,
-        y: Math.random()*canvas.height,
-        vx: (Math.random()-0.5)*0.15,
-        vy: (Math.random()-0.5)*0.15
-    });
+let points=[];
+for(let i=0;i<15;i++){  // reduced to 15 points for balance
+    points.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,vx:(Math.random()-0.5)*0.2,vy:(Math.random()-0.5)*0.2});
 }
 
 function drawLines(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
-    ctx.strokeStyle='rgba(255,215,0,0.6)';
-    ctx.lineWidth=1;
-
+    ctx.strokeStyle='rgba(255,215,0,0.6)';ctx.lineWidth=0.7;
     for(let i=0;i<points.length;i++){
-        let p = points[i];
+        let p=points[i];
         for(let j=i+1;j<points.length;j++){
-            let p2 = points[j];
-            let dx = p2.x-p.x;
-            let dy = p2.y-p.y;
-            let dist = Math.sqrt(dx*dx + dy*dy);
-            if(dist < 250){
-                ctx.beginPath();
-                ctx.moveTo(p.x,p.y);
-                ctx.lineTo(p2.x,p2.y);
-                ctx.stroke();
-            }
+            let p2=points[j];
+            let dx=p2.x-p.x,dy=p2.y-p.y;
+            let dist=Math.sqrt(dx*dx+dy*dy);
+            if(dist<200){ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p2.x,p2.y);ctx.stroke();}
         }
-        p.x += p.vx;
-        p.y += p.vy;
-        if(p.x<0 || p.x>canvas.width) p.vx*=-1;
-        if(p.y<0 || p.y>canvas.height) p.vy*=-1;
+        p.x+=p.vx;p.y+=p.vy;
+        if(p.x<0||p.x>canvas.width)p.vx*=-1;if(p.y<0||p.y>canvas.height)p.vy*=-1;
     }
     requestAnimationFrame(drawLines);
 }
 drawLines();
 
 /* ---------- SECTION CONTROL ---------- */
-function showSection(id){ document.querySelectorAll("section").forEach(sec=>sec.style.display="none"); document.getElementById(id).style.display="block"; }
-function goAuth(){ showSection("authKey"); }
-function validateKey(){ const key = document.getElementById("authInput").value.trim(); if(!key)return alert("Enter your key"); const status=document.getElementById("statusMsg"); if(key==="VALIDKEY123"){status.innerText="✅ Key Valid!"; status.style.opacity=1; setTimeout(()=>{showSection("loginChoice");},800);} else {status.innerText="❌ Invalid or expired key!"; status.style.opacity=1;} }
-function startQR(){ const userId=document.getElementById("authInput").value.trim(); if(!userId)return alert("Enter username first"); socket.emit("start-qr",{userId}); }
-function startCode(){ const userId=document.getElementById("authInput").value.trim(); const phone=document.getElementById("phone").value.trim(); if(!userId||!phone)return alert("Enter username & phone"); socket.emit("start-code",{userId,phone}); }
-function finishLogin(){ showSection("sessionDeploy"); }
-function deploySession(){ const sessionId=document.getElementById("sessionId").value.trim(); if(!sessionId)return alert("Enter session ID"); const popup=document.getElementById("deployPopup"); popup.classList.add("show"); setTimeout(()=>{popup.classList.remove("show");},3000); }
-
-/* ---------- SOCKET LISTENERS ---------- */
-socket.on("qr",(qrImage)=>{ document.getElementById("qrContainer").innerHTML=`<img src="${qrImage}" alt="QR Code">`; });
-socket.on("pair-code",(code)=>{ document.getElementById("pairCode").innerText="Pairing Code: "+code; });
-socket.on("status",(msg)=>{ document.getElementById("status").innerText=msg; });
-
-/* ---------- MINI AI FIXED ---------- */
-const miniAI = document.getElementById("miniAI");
-const aiPopup = document.getElementById("aiPopup");
-miniAI.addEventListener("click",()=>{ aiPopup.style.display = aiPopup.style.display==="flex"?"none":"flex"; });
-
-async function askAI(){
-    const q=document.getElementById("aiQuestion").value.trim();
-    if(!q) return alert("Type a question first");
-    try{
-        const res = await fetch("/ask-ai",{method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({question:q})});
-        if(!res.ok) throw new Error("Network error");
-        const data = await res.json();
-        document.getElementById("aiAnswer").innerText = data.answer || "AI could not answer";
-    }catch(e){
-        document.getElementById("aiAnswer").innerText="❌ AI temporarily unavailable";
-        console.error(e);
-    }
+function showSection(id){document.querySelectorAll("section").forEach(sec=>sec.style.display="none");document.getElementById(id).style.display="block";}
+function goAuth(){showSection("authKey");}
+function validateKey(){
+    const key=document.getElementById("authInput").value.trim();
+    if(!key)return alert("Enter your key");
+    if(key==="VALIDKEY123"){document.getElementById("statusMsg").innerText="✅ Key Valid!";document.getElementById("statusMsg").style.opacity=1;setTimeout(()=>{showSection("loginChoice");},800);}
+    else{document.getElementById("statusMsg").innerText="❌ Invalid or expired key!";document.getElementById("statusMsg").style.opacity=1;}
 }
+function startQR(){const userId=document.getElementById("authInput").value.trim();if(!userId)return alert("Enter username first");socket.emit("start-qr",{userId});}
+function startCode(){const userId=document.getElementById("authInput").value.trim();const phone=document.getElementById("phone").value.trim();if(!userId||!phone)return alert("Enter username & phone");socket.emit("start-code",{userId,phone});}
+function finishLogin(){showSection("sessionDeploy");}
+function deploySession(){const sessionId=document.getElementById("sessionId").value.trim();if(!sessionId)return alert("Enter session ID");const popup=document.getElementById("deployPopup");popup.classList.add("show");setTimeout(()=>{popup.classList.remove("show");},3000);}
+
+/* ---------- SOCKET ---------- */
+socket.on("qr",(qrImage)=>{document.getElementById("qrContainer").innerHTML=`<img src="${qrImage}" alt="QR Code">`;});
+socket.on("pair-code",(code)=>{document.getElementById("pairCode").innerText="Pairing Code: "+code;});
+socket.on("status",(msg)=>{document.getElementById("status").innerText=msg;});
+
+/* ---------- MINI AI ---------- */
+const miniAI=document.getElementById("miniAI");const aiPopup=document.getElementById("aiPopup");
+miniAI.addEventListener("click",()=>{aiPopup.style.display = aiPopup.style.display==="flex"?"none":"flex";});
+async function askAI(){const q=document.getElementById("aiQuestion").value.trim();if(!q)return;
+const res=await fetch("/ask-ai",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({question:q})});
+const data=await res.json();document.getElementById("aiAnswer").innerText=data.answer;}
 </script>
 
 </body>
