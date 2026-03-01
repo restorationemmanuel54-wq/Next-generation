@@ -8,247 +8,54 @@
 <script src="/socket.io/socket.io.js"></script>
 
 <style>
-body{
-    margin:0;
-    font-family:'Poppins',sans-serif;
-    background:#000;
-    color:#fff;
-    overflow-x:hidden;
-    text-align:center;
-    position:relative;
-}
-
-/* BACKGROUND LINES */
-canvas#bgLines{
-    position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    z-index:-1;
-}
-
-section{
-    padding:80px 20px;
-    display:none;
-    transition: all 0.5s ease;
-}
-
-#hero{
-    display:block;
-    height:100vh;
-    background:linear-gradient(180deg,#000,#111);
-}
-
-h1{
-    font-size:40px;
-    margin-top:30px;
-    text-shadow: 0 0 20px gold;
-}
-
-.scroll-text{
-    margin-top:50px;
-    opacity:0.7;
-    animation:float 2s infinite alternate;
-}
-
-@keyframes float{
-    from{transform:translateY(0px)}
-    to{transform:translateY(10px)}
-}
-
-button{
-    padding:12px 30px;
-    border:none;
-    border-radius:30px;
-    background:gold;
-    font-weight:600;
-    cursor:pointer;
-    margin-top:20px;
-    transition: all 0.3s;
-    box-shadow:0 0 15px gold;
-}
-
-button:hover{
-    transform:scale(1.1);
-    box-shadow:0 0 30px gold;
-}
-
-#miniAI{
-    position:fixed;
-    bottom:30px;
-    right:30px;
-    width:70px;
-    height:70px;
-    border-radius:50%;
-    background:radial-gradient(circle,gold,orange);
-    box-shadow:0 0 20px gold;
-    animation:pulse 1.5s infinite;
-    cursor:pointer;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    font-size:30px;
-    font-weight:bold;
-}
-
-@keyframes pulse{
-    0%{box-shadow:0 0 10px gold}
-    50%{box-shadow:0 0 25px gold}
-    100%{box-shadow:0 0 10px gold}
-}
-
-#hero img{
-    width:200px;
-    border-radius:15px;
-    margin-top:50px;
-    box-shadow:0 0 20px gold;
-}
-
-input{
-    padding:10px;
-    border-radius:10px;
-    border:none;
-    margin:10px;
-    width:250px;
-    outline:none;
-}
-
-#qrContainer img{
-    margin-top:20px;
-    width:250px;
-}
-
-#pairCode, #codeOutput{
-    margin-top:20px;
-    font-weight:bold;
-    color:gold;
-}
-
-#statusMsg{
-    margin-top:10px;
-    font-weight:bold;
-    color:#0f0;
-    opacity:0;
-    transition: all 0.5s ease;
-}
-
-/* DEPLOY BUTTON ANIMATION */
-#deployBtn{
-    background:linear-gradient(45deg,gold,orange);
-    animation:shine 2s infinite alternate;
-}
-
-@keyframes shine{
-    from{box-shadow:0 0 10px gold}
-    to{box-shadow:0 0 30px orange}
-}
-
-/* MINI AI POPUP */
-#aiPopup{
-    position:fixed;
-    bottom:120px;
-    right:30px;
-    width:300px;
-    max-width:90%;
-    background:#111;
-    border:2px solid gold;
-    border-radius:15px;
-    padding:20px;
-    display:none;
-    flex-direction:column;
-    box-shadow:0 0 25px gold;
-    z-index:1000;
-}
-
-#aiPopup textarea{
-    width:100%;
-    height:60px;
-    border-radius:10px;
-    border:none;
-    padding:10px;
-    resize:none;
-    background:#222;
-    color:#fff;
-}
-
-#aiPopup button{
-    width:100%;
-    margin-top:10px;
-}
-
-/* DEPLOY POPUP */
-#deployPopup{
-    position:fixed;
-    top:-100px;
-    left:50%;
-    transform:translateX(-50%);
-    background:gold;
-    color:#000;
-    padding:20px 50px;
-    border-radius:15px;
-    font-weight:bold;
-    box-shadow:0 0 20px gold;
-    transition: all 0.8s ease;
-    z-index:1001;
-}
-
-#deployPopup.show{
-    top:50px;
-}
+body{margin:0;font-family:'Poppins',sans-serif;background:#000;color:#fff;text-align:center;position:relative;}
+canvas#bgLines{position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;}
+section{padding:80px 20px;display:none;transition: all 0.5s ease;}
+#hero{display:block;height:100vh;background:linear-gradient(180deg,#000,#111);}
+h1{font-size:40px;margin-top:30px;text-shadow:0 0 20px gold;}
+.scroll-text{margin-top:50px;opacity:0.7;animation:float 2s infinite alternate;}
+@keyframes float{from{transform:translateY(0px)}to{transform:translateY(10px)}}
+button{padding:12px 30px;border:none;border-radius:30px;background:gold;font-weight:600;cursor:pointer;margin-top:20px;transition: all 0.3s;box-shadow:0 0 15px gold;}
+button:hover{transform:scale(1.1);box-shadow:0 0 30px gold;}
+#miniAI{position:fixed;bottom:30px;right:30px;width:70px;height:70px;border-radius:50%;background:radial-gradient(circle,gold,orange);box-shadow:0 0 20px gold;animation:pulse 1.5s infinite;cursor:pointer;display:flex;justify-content:center;align-items:center;font-size:30px;font-weight:bold;}
+@keyframes pulse{0%{box-shadow:0 0 10px gold}50%{box-shadow:0 0 25px gold}100%{box-shadow:0 0 10px gold}}
+#hero img{width:200px;border-radius:15px;margin-top:50px;box-shadow:0 0 20px gold;}
+input{padding:10px;border-radius:10px;border:none;margin:10px;width:250px;outline:none;}
+#qrContainer img{margin-top:20px;width:250px;}
+#pairCode{margin-top:20px;font-weight:bold;color:gold;font-size:20px;}
+#status{margin-top:10px;font-weight:bold;color:#0f0;opacity:1;transition: all 0.5s ease;}
+#deployPopup{position:fixed;top:-100px;left:50%;transform:translateX(-50%);background:gold;color:#000;padding:20px 50px;border-radius:15px;font-weight:bold;box-shadow:0 0 20px gold;transition: all 0.8s ease;z-index:1001;}
+#deployPopup.show{top:50px;}
+#aiPopup{position:fixed;bottom:120px;right:30px;width:300px;max-width:90%;background:#111;border:2px solid gold;border-radius:15px;padding:20px;display:none;flex-direction:column;box-shadow:0 0 25px gold;z-index:1000;}
+#aiPopup textarea{width:100%;height:60px;border-radius:10px;border:none;padding:10px;resize:none;background:#222;color:#fff;}
+#aiPopup button{width:100%;margin-top:10px;}
 </style>
 </head>
 <body>
 
-<!-- BACKGROUND LINES -->
 <canvas id="bgLines"></canvas>
 
-<!-- HERO -->
 <section id="hero">
     <img src="https://i.postimg.cc/qqfKZcJ5/IMG-20260228-WA0002.png" alt="Nexora Logo">
     <h1>Welcome to Nexora V2 Premium</h1>
     <div class="scroll-text">⬇ Scroll Down To Deploy ⬇</div>
     <br>
-    <button onclick="goAuth()">Initialize Deployment</button>
+    <button onclick="showSection('loginChoice')">Start Deployment</button>
 </section>
 
-<!-- AUTH KEY SECTION -->
-<section id="authKey">
-    <h2>Enter Authorization Key</h2>
-    <input id="authInput" placeholder="Enter Your Key">
-    <br>
-    <button id="deployBtn">Deploy</button>
-    <p id="statusMsg"></p>
-</section>
-
-<!-- LOGIN CHOICE -->
 <section id="loginChoice">
-    <h2>Choose Login Method</h2>
-    <button id="qrBtn">QR Login</button>
+    <h2>Login</h2>
+    <button onclick="startQR()">QR Login</button>
     <br><br>
     <input id="phone" placeholder="+234XXXXXXXXXX">
-    <button id="codeBtn">Code Login</button>
-    <br><br>
+    <button onclick="startCode()">Code Login</button>
     <h3 id="pairCode"></h3>
-    <h3 id="codeOutput"></h3>
     <p id="status"></p>
+    <div id="qrContainer"></div>
 </section>
 
-<!-- SESSION DEPLOY -->
-<section id="sessionDeploy">
-    <h2>Session ID</h2>
-    <input id="sessionId" placeholder="Paste Session ID Here">
-    <br>
-    <button onclick="deploySession()" id="deployBtn">Deploy 🚀</button>
-    <p id="statusMsg2"></p>
-    <br>
-    <a href="https://whatsapp.com/channel/0029VbCFEZv60eBdlqXqQz20" target="_blank" style="color:gold;">Join our WhatsApp Channel</a>
-</section>
-
-<!-- DEPLOY POPUP -->
 <div id="deployPopup">🚀 Nexora Deployed!</div>
 
-<!-- MINI AI -->
 <div id="miniAI" title="Ask Nexora AI">🤖</div>
 <div id="aiPopup">
     <textarea id="aiQuestion" placeholder="Ask about Nexora bot..."></textarea>
@@ -259,120 +66,26 @@ input{
 <script>
 const socket = io();
 
-/* ---------- BACKGROUND LINES ---------- */
-const canvas = document.getElementById("bgLines");
-const ctx = canvas.getContext("2d");
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+function showSection(id){document.querySelectorAll("section").forEach(sec=>sec.style.display="none");document.getElementById(id).style.display="block";}
 
-let points = [];
-for(let i=0;i<10;i++){ // reduced lines
-    points.push({
-        x:Math.random()*canvas.width,
-        y:Math.random()*canvas.height,
-        vx:(Math.random()-0.5)*0.3,
-        vy:(Math.random()-0.5)*0.3
-    });
-}
-
-function drawLines(){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    ctx.strokeStyle='gold';
-    ctx.lineWidth=0.8;
-
-    for(let i=0;i<points.length;i++){
-        let p=points[i];
-        for(let j=i+1;j<points.length;j++){
-            let p2=points[j];
-            let dx=p2.x-p.x;
-            let dy=p2.y-p.y;
-            let dist=Math.sqrt(dx*dx+dy*dy);
-            if(dist<180){
-                ctx.beginPath();
-                ctx.moveTo(p.x,p.y);
-                ctx.lineTo(p2.x,p2.y);
-                ctx.stroke();
-            }
-        }
-        p.x+=p.vx;
-        p.y+=p.vy;
-        if(p.x<0||p.x>canvas.width) p.vx*=-1;
-        if(p.y<0||p.y>canvas.height) p.vy*=-1;
-    }
-    requestAnimationFrame(drawLines);
-}
-drawLines();
-
-/* ---------- SECTION CONTROL ---------- */
-function showSection(id){
-    document.querySelectorAll("section").forEach(sec=>sec.style.display="none");
-    document.getElementById(id).style.display="block";
-}
-
-function goAuth(){ showSection("authKey"); }
-
-/* ---------- VALIDATE KEY ---------- */
-async function validateKey(){
-    const key = document.getElementById("authInput").value.trim();
-    if(!key) return alert("Enter your key");
-
-    try {
-        const res = await fetch("/validate-key", {
-            method: "POST",
-            headers: {"Content-Type":"application/json"},
-            body: JSON.stringify({ key })
-        });
-        const data = await res.json();
-
-        if(data.valid){
-            document.getElementById("statusMsg").innerText="✅ Key Valid!";
-            document.getElementById("statusMsg").style.opacity=1;
-            setTimeout(()=>{ showSection("loginChoice"); },800);
-        } else {
-            document.getElementById("statusMsg").innerText="❌ Invalid or expired key!";
-            document.getElementById("statusMsg").style.opacity=1;
-        }
-    } catch(err){
-        console.error(err);
-        alert("Error checking key. Try again.");
-    }
-}
-
-// Bind deploy button
-document.getElementById("deployBtn").addEventListener("click", validateKey);
-
-/* ---------- LOGIN BUTTONS ---------- */
-document.getElementById("qrBtn").addEventListener("click", ()=>{
-    const userId = document.getElementById("authInput").value.trim();
-    if(!userId) return alert("Enter username first");
+/* ---------- QR LOGIN ---------- */
+function startQR(){
+    const userId = "user"; // optional username for session
     socket.emit("start-qr",{ userId });
-});
+}
 
-document.getElementById("codeBtn").addEventListener("click", ()=>{
-    const userId = document.getElementById("authInput").value.trim();
+/* ---------- CODE LOGIN ---------- */
+function startCode(){
+    const userId = "user"; // optional username
     const phone = document.getElementById("phone").value.trim();
-    if(!userId || !phone) return alert("Enter username & phone");
-
+    if(!phone) return alert("Enter phone number");
     socket.emit("start-code",{ userId, phone });
-});
+}
 
 /* ---------- SOCKET LISTENERS ---------- */
 socket.on("qr",(qrImage)=>{ document.getElementById("qrContainer").innerHTML=`<img src="${qrImage}" alt="QR Code">`; });
-socket.on("pair-code",(code)=>{
-    document.getElementById("codeOutput").innerText = "Your 8-digit WhatsApp Code: " + code;
-});
+socket.on("pair-code",(code)=>{ document.getElementById("pairCode").innerText=`🔑 Session Code: ${code}`; });
 socket.on("status",(msg)=>{ document.getElementById("status").innerText=msg; });
-
-/* ---------- DEPLOY SESSION ---------- */
-function deploySession(){
-    const sessionId = document.getElementById("sessionId").value.trim();
-    if(!sessionId) return alert("Enter session ID");
-
-    const popup = document.getElementById("deployPopup");
-    popup.classList.add("show");
-
-    setTimeout(()=>{ popup.classList.remove("show"); },3000);
-}
 
 /* ---------- MINI AI ---------- */
 const miniAI = document.getElementById("miniAI");
@@ -385,6 +98,16 @@ async function askAI(){
     const data = await res.json();
     document.getElementById("aiAnswer").innerText=data.answer;
 }
+
+/* ---------- BACKGROUND LINES ---------- */
+const canvas = document.getElementById("bgLines");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+let points = [];
+for(let i=0;i<15;i++){points.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,vx:(Math.random()-0.5)*0.2,vy:(Math.random()-0.5)*0.2});}
+function drawLines(){ctx.clearRect(0,0,canvas.width,canvas.height);ctx.strokeStyle='gold';ctx.lineWidth=0.8;
+points.forEach((p,i)=>{points.forEach((p2,j)=>{if(i<j){let dx=p2.x-p.x,dy=p2.y-p.y,dist=Math.sqrt(dx*dx+dy*dy);if(dist<180){ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p2.x,p2.y);ctx.stroke();}}});p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>canvas.width)p.vx*=-1;if(p.y<0||p.y>canvas.height)p.vy*=-1;});requestAnimationFrame(drawLines);}
+drawLines();
 </script>
 
 </body>
