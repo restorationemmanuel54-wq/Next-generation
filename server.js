@@ -16,16 +16,11 @@ app.use(express.static(__dirname));
 
 const PORT = process.env.PORT || 3000;
 
-/* ---------- SESSIONS FOLDER ---------- */
-if (!fs.existsSync("./sessions")) fs.mkdirSync("./sessions");
-
-/* ---------- KEYS SETUP ---------- */
-const keysPath = path.join(__dirname, "keys.json");
+/* ---------- KEYS ---------- */
+const keysPath = "./keys.json";
 let validKeys = [];
 if (fs.existsSync(keysPath)) {
-    validKeys = JSON.parse(fs.readFileSync(keysPath, "utf-8")).keys;
-} else {
-    console.warn("⚠ keys.json not found! All keys will be invalid.");
+    validKeys = JSON.parse(fs.readFileSync(keysPath, "utf-8"));
 }
 
 /* ---------- OPENAI SETUP ---------- */
@@ -66,40 +61,43 @@ async function createBot(userId, socket) {
 io.on("connection", (socket) => {
     console.log("User connected");
 
-    /* QR LOGIN */
+    // QR LOGIN
     socket.on("start-qr", async ({ userId }) => {
         if (!userId) return socket.emit("status", "Enter username first");
         if (activeBots.has(userId)) return socket.emit("status", "Bot already running");
         await createBot(userId, socket);
     });
 
-    /* CODE LOGIN */
+    // CODE LOGIN
     socket.on("start-code", async ({ userId, phone }) => {
         if (!userId || !phone) return socket.emit("status", "Enter username & phone");
         if (activeBots.has(userId)) return socket.emit("status", "Bot already running");
 
-        const sock = await createBot(userId, socket);
+        try {
+            const sock = await createBot(userId, socket);
 
-        setTimeout(async () => {
-            try {
-                const code = Math.floor(100000 + Math.random() * 900000).toString();
-                socket.emit("pair-code", code);
+            // Generate an 8-digit code
+            const code = Math.floor(10000000 + Math.random() * 90000000).toString();
 
-                // send welcome message to WhatsApp
-                await sock.sendMessage(`${phone}@s.whatsapp.net`, { text: `Welcome to Nexora V2 Premium! Your session code: ${code}` });
-            } catch (err) {
-                console.error(err);
-                socket.emit("status", "❌ Failed to generate pairing code");
-            }
-        }, 3000);
+            // Send code to the frontend
+            socket.emit("pair-code", code);
+
+            // Optionally: send to WhatsApp user
+            await sock.sendMessage(`${phone}@s.whatsapp.net`, { text: `Welcome to Nexora V2 Premium! Your 8-digit session code: ${code}` });
+
+        } catch (err) {
+            console.error(err);
+            socket.emit("status", "❌ Failed to generate pairing code");
+        }
     });
 });
 
-/* ---------- KEY VALIDATION ---------- */
+/* ---------- VALIDATE KEY ---------- */
 app.post("/validate-key", (req, res) => {
     const { key } = req.body;
     if (!key) return res.json({ valid: false });
-    const isValid = validKeys.includes(key.trim());
+
+    const isValid = validKeys.includes(key);
     res.json({ valid: isValid });
 });
 
@@ -118,12 +116,9 @@ app.post("/ask-ai", async (req, res) => {
         });
         res.json({ answer: response.choices[0].message.content });
     } catch (err) {
-        console.error(err);
         res.json({ answer: "AI temporarily unavailable." });
     }
 });
 
 /* ---------- START SERVER ---------- */
-server.listen(PORT, () => {
-    console.log("🚀 Nexora V2 running on port " + PORT);
-});
+server.listen(PORT, () => console.log("🚀 Nexora V2 running on port " + PORT));
