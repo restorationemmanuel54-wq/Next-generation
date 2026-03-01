@@ -76,7 +76,7 @@ io.on("connection", (socket) => {
                 const code = Math.floor(100000 + Math.random() * 900000).toString();
                 socket.emit("pair-code", code);
 
-                // Optional: send a WhatsApp message (welcome) after pairing
+                // send welcome message to WhatsApp
                 await sock.sendMessage(`${phone}@s.whatsapp.net`, { text: `Welcome to Nexora V2 Premium! Your session code: ${code}` });
             } catch (err) {
                 console.error(err);
