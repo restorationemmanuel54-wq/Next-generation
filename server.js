@@ -16,96 +16,78 @@ app.use(express.static(__dirname));
 
 const PORT = process.env.PORT || 3000;
 
-/* ---------- SESSIONS FOLDER ---------- */
 if (!fs.existsSync("./sessions")) fs.mkdirSync("./sessions");
 
-/* ---------- OPENAI SETUP ---------- */
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-/* ---------- ACTIVE BOTS ---------- */
 const activeBots = new Map();
 
-/* ---------- CREATE BOT ---------- */
-async function createBot(userId, socket) {
-    const sessionPath = path.join("./sessions", userId);
-    const { state, saveCreds } = await useMultiFileAuthState(sessionPath);
+async function createBot(userId,socket){
+    const sessionPath = path.join("./sessions",userId);
+    const {state,saveCreds}=await useMultiFileAuthState(sessionPath);
 
-    const sock = makeWASocket({ auth: state, printQRInTerminal: false });
-    activeBots.set(userId, sock);
+    const sock = makeWASocket({auth:state,printQRInTerminal:false});
+    activeBots.set(userId,sock);
 
     sock.ev.on("creds.update", saveCreds);
 
-    sock.ev.on("connection.update", async (update) => {
-        const { qr, connection } = update;
-
-        if (qr) {
+    sock.ev.on("connection.update", async(update)=>{
+        const {qr,connection} = update;
+        if(qr){
             const qrImage = await QRCode.toDataURL(qr);
-            socket.emit("qr", qrImage);
+            socket.emit("qr",qrImage);
         }
-
-        if (connection === "open") socket.emit("status", "✅ Bot Connected Successfully");
-        if (connection === "close") {
-            activeBots.delete(userId);
-            socket.emit("status", "❌ Bot Disconnected");
-        }
+        if(connection==="open") socket.emit("status","✅ Bot Connected Successfully");
+        if(connection==="close"){ activeBots.delete(userId); socket.emit("status","❌ Bot Disconnected"); }
     });
 
     return sock;
 }
 
-/* ---------- SOCKET.IO ---------- */
-io.on("connection", (socket) => {
+io.on("connection",(socket)=>{
     console.log("User connected");
 
-    /* QR LOGIN */
-    socket.on("start-qr", async ({ userId }) => {
-        if (!userId) return socket.emit("status", "Enter username first");
-        if (activeBots.has(userId)) return socket.emit("status", "Bot already running");
-        await createBot(userId, socket);
+    socket.on("start-qr", async({userId})=>{
+        if(!userId) return socket.emit("status","Enter username first");
+        if(activeBots.has(userId)) return socket.emit("status","Bot already running");
+        await createBot(userId,socket);
     });
 
-    /* CODE LOGIN */
-    socket.on("start-code", async ({ userId, phone }) => {
-        if (!userId || !phone) return socket.emit("status", "Enter username & phone");
-        if (activeBots.has(userId)) return socket.emit("status", "Bot already running");
+    socket.on("start-code", async({userId,phone})=>{
+        if(!userId||!phone) return socket.emit("status","Enter username & phone");
+        if(activeBots.has(userId)) return socket.emit("status","Bot already running");
 
-        const sock = await createBot(userId, socket);
-
-        setTimeout(async () => {
-            try {
-                const code = Math.floor(100000 + Math.random() * 900000).toString();
-                socket.emit("pair-code", code);
-
-                // send welcome message to WhatsApp
-                await sock.sendMessage(`${phone}@s.whatsapp.net`, { text: `Welcome to Nexora V2 Premium! Your session code: ${code}` });
-            } catch (err) {
+        const sock = await createBot(userId,socket);
+        setTimeout(async()=>{
+            try{
+                const code = Math.floor(100000+Math.random()*900000).toString();
+                socket.emit("pair-code",code);
+                await sock.sendMessage(`${phone}@s.whatsapp.net`, {text:`Welcome to Nexora V2 Premium! Your session code: ${code}`});
+            }catch(err){
                 console.error(err);
-                socket.emit("status", "❌ Failed to generate pairing code");
+                socket.emit("status","❌ Failed to generate pairing code");
             }
-        }, 3000);
+        },3000);
     });
 });
 
-/* ---------- MINI AI ---------- */
-app.post("/ask-ai", async (req, res) => {
-    const { question } = req.body;
-    if (!question) return res.json({ answer: "Ask about Nexora bot system." });
+app.post("/ask-ai", async(req,res)=>{
+    const {question}=req.body;
+    if(!question) return res.json({answer:"Ask about Nexora bot system."});
 
-    try {
+    try{
         const response = await openai.chat.completions.create({
-            model: "gpt-3.5-turbo",
-            messages: [
-                { role: "system", content: "You are Nexora V2 AI assistant. Only answer about bots, deployment, automation, and Nexora system." },
-                { role: "user", content: question }
+            model:"gpt-3.5-turbo",
+            messages:[
+                {role:"system", content:"You are Nexora V2 AI assistant. Only answer about bots, deployment, automation, and Nexora system."},
+                {role:"user", content:question}
             ]
         });
-        res.json({ answer: response.choices[0].message.content });
-    } catch (err) {
-        res.json({ answer: "AI temporarily unavailable." });
+        res.json({answer:response.choices[0].message.content});
+    }catch(err){
+        console.error(err);
+        res.json({answer:"AI temporarily unavailable."});
     }
 });
 
-/* ---------- START SERVER ---------- */
-server.listen(PORT, () => {
-    console.log("🚀 Nexora V2 running on port " + PORT);
-});
+server.listen(PORT,()=>{console.log("🚀 Nexora V2 running on port "+PORT);});
