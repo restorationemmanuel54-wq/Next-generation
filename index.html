@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nexora V2</title>
+<style>
+body{
+  margin:0;
+  font-family:monospace;
+  background:linear-gradient(-45deg,#0f0c29,#302b63,#24243e,#000);
+  background-size:400% 400%;
+  animation:bg 15s ease infinite;
+  color:white;
+}
+@keyframes bg{
+  0%{background-position:0% 50%;}
+  50%{background-position:100% 50%;}
+  100%{background-position:0% 50%;}
+}
+
+.container{
+  max-width:500px;
+  margin:50px auto;
+  padding:25px;
+  background:rgba(0,0,0,0.8);
+  border-radius:20px;
+  box-shadow:0 0 20px #ff00cc;
+}
+
+button{
+  padding:12px;
+  width:100%;
+  margin-top:10px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:bold;
+  background:linear-gradient(45deg,#ff00cc,#ff8800);
+  color:white;
+}
+
+input{
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border-radius:10px;
+  border:none;
+}
+
+.section{ display:none; }
+.active{ display:block; }
+
+#topMsg{
+  position:fixed;
+  top:-60px;
+  left:50%;
+  transform:translateX(-50%);
+  background:#ff8800;
+  padding:15px 30px;
+  border-radius:12px;
+  transition:0.5s;
+}
+#topMsg.show{ top:20px; }
+
+#aiBtn{
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  width:60px;
+  height:60px;
+  border-radius:50%;
+  background:#ff00cc;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+}
+</style>
+</head>
+<body>
+
+<div id="topMsg"></div>
+
+<div class="container">
+
+<h2>Welcome to Nexora V2</h2>
+
+<div id="welcome" class="section active">
+  <button onclick="showDeploy()">Deploy</button>
+</div>
+
+<div id="deploySection" class="section">
+  <input id="authKey" placeholder="Enter Authorization Key">
+  <button onclick="validateKey()">Deploy</button>
+</div>
+
+<div id="loginSection" class="section">
+  <button onclick="startQR()">QR Login</button>
+  <button onclick="showCode()">Code Login</button>
+</div>
+
+<div id="qrSection" class="section">
+  <img id="qrImg" width="250">
+  <button onclick="showSession()">Done</button>
+</div>
+
+<div id="codeSection" class="section">
+  <input id="phone" placeholder="+234xxxxxxxxxx">
+  <button onclick="generateCode()">Generate Code</button>
+  <div id="pairCode"></div>
+  <button onclick="copyCode()">Copy Code</button>
+  <button onclick="showSession()">Done</button>
+</div>
+
+<div id="sessionSection" class="section">
+  <input placeholder="Enter Session ID">
+  <button onclick="finalDeploy()">Deploy 🚀</button>
+</div>
+
+<p style="text-align:center;margin-top:20px;">
+All rights reserved © Nexora V2 2026
+</p>
+
+</div>
+
+<div id="aiBtn" onclick="alert('Ask me about Nexora!')">🤖</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const socket = io();
+
+function showMsg(msg){
+  const m = document.getElementById("topMsg");
+  m.innerText = msg;
+  m.classList.add("show");
+  setTimeout(()=>m.classList.remove("show"),3000);
+}
+
+function showDeploy(){
+  switchSection("deploySection");
+}
+
+async function validateKey(){
+  const key = document.getElementById("authKey").value;
+  const res = await fetch("/validate-key",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({key})
+  });
+  const data = await res.json();
+  if(!data.valid) return showMsg(data.message);
+  showMsg("Welcome");
+  switchSection("loginSection");
+}
+
+function startQR(){
+  switchSection("qrSection");
+  socket.emit("start-qr",{userId:"user1"});
+}
+
+function showCode(){
+  switchSection("codeSection");
+}
+
+function generateCode(){
+  const phone = document.getElementById("phone").value;
+  if(!phone) return showMsg("Enter phone number");
+  socket.emit("generate-code",{phone});
+}
+
+socket.on("qr", qr=>{
+  document.getElementById("qrImg").src = qr;
+});
+
+socket.on("pairing-code", code=>{
+  document.getElementById("pairCode").innerText = code;
+});
+
+function copyCode(){
+  const code = document.getElementById("pairCode").innerText;
+  navigator.clipboard.writeText(code);
+  showMsg("Copied");
+}
+
+function showSession(){
+  switchSection("sessionSection");
+}
+
+function finalDeploy(){
+  showMsg("Bot Connected Successfully");
+}
+
+function switchSection(id){
+  document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+</script>
+
+</body>
+</html>
