@@ -1,6 +1,209 @@
-<!-- Inside your <script> at the bottom -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nexora V2 Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+<script src="/socket.io/socket.io.js"></script>
+<style>
+body{
+    margin:0;
+    font-family:'Poppins',sans-serif;
+    background:#0a0a0a;
+    color:#fff;
+    overflow-x:hidden;
+    text-align:center;
+}
+
+/* BACKGROUND LINES */
+canvas#bgLines{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    z-index:-1;
+}
+
+/* SECTIONS */
+section{
+    padding:60px 20px;
+    display:none;
+    transition: all 0.5s ease;
+    max-width: 600px;
+    margin: 0 auto;
+    background: rgba(255,215,0,0.05);
+    border-radius: 15px;
+    box-shadow: 0 0 25px rgba(255,215,0,0.2);
+}
+
+/* HERO */
+#hero{
+    display:block;
+    height:100vh;
+    background:linear-gradient(180deg,#000,#111);
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+}
+
+h1{
+    font-size:38px;
+    margin:20px 0;
+    text-shadow: 0 0 20px gold;
+}
+
+button{
+    padding:12px 30px;
+    border:none;
+    border-radius:30px;
+    background:linear-gradient(45deg,gold,orange);
+    font-weight:600;
+    cursor:pointer;
+    margin-top:20px;
+    transition: all 0.3s;
+    box-shadow:0 0 15px gold;
+}
+
+button:hover{
+    transform:scale(1.1);
+    box-shadow:0 0 30px gold;
+}
+
+input{
+    padding:10px;
+    border-radius:10px;
+    border:none;
+    margin:10px;
+    width:250px;
+    outline:none;
+    background:#222;
+    color:#fff;
+    font-weight:bold;
+}
+
+/* MINI AI BUTTON */
+#miniAI{
+    position:fixed;
+    bottom:30px;
+    right:30px;
+    width:70px;
+    height:70px;
+    border-radius:50%;
+    background:radial-gradient(circle,gold,orange);
+    box-shadow:0 0 20px gold;
+    animation:pulse 1.5s infinite;
+    cursor:pointer;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:30px;
+    font-weight:bold;
+}
+
+@keyframes pulse{
+    0%{box-shadow:0 0 10px gold}
+    50%{box-shadow:0 0 25px gold}
+    100%{box-shadow:0 0 10px gold}
+}
+
+/* STATUS MESSAGE */
+#statusMsg{
+    margin-top:15px;
+    font-weight:bold;
+    color:#0f0;
+    transition: all 0.5s ease;
+}
+
+/* QR Section */
+#qrContainer img{
+    margin-top:20px;
+    width:250px;
+}
+
+/* CODE Section */
+#codeContainer input{
+    text-align:center;
+    font-size:16px;
+}
+#codeContainer button{
+    margin-left:10px;
+    padding:8px 16px;
+}
+
+/* BACKGROUND ANIMATION LINES */
+</style>
+</head>
+<body>
+
+<canvas id="bgLines"></canvas>
+
+<!-- HERO -->
+<section id="hero">
+    <img src="https://i.postimg.cc/qqfKZcJ5/IMG-20260228-WA0002.png" width="150" style="border-radius:10px; box-shadow:0 0 20px gold;"/>
+    <h1>Nexora V2 Premium Panel</h1>
+    <input id="userId" placeholder="Enter WhatsApp Number (e.g +234...)" />
+    <br>
+    <button onclick="startQRLogin()">QR Login</button>
+    <button onclick="startCodeLogin()">Code Login</button>
+    <p id="statusMsg"></p>
+</section>
+
+<!-- QR LOGIN -->
+<section id="qrSection">
+    <h2>Scan QR Code</h2>
+    <div id="qrContainer"></div>
+    <button onclick="showSection('hero')">Back</button>
+</section>
+
+<!-- CODE LOGIN -->
+<section id="codeSection">
+    <h2>8-Digit Code</h2>
+    <div id="codeContainer"></div>
+    <button onclick="showSection('hero')">Back</button>
+</section>
+
 <script>
 const socket = io();
+
+/* ---------- BACKGROUND LINES ---------- */
+const canvas = document.getElementById("bgLines");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let points = [];
+for(let i=0;i<10;i++){ // reduced points for cleaner effect
+    points.push({ x:Math.random()*canvas.width, y:Math.random()*canvas.height, vx:(Math.random()-0.5)*0.2, vy:(Math.random()-0.5)*0.2 });
+}
+
+function drawLines(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.strokeStyle='gold';
+    ctx.lineWidth=0.8;
+    for(let i=0;i<points.length;i++){
+        let p=points[i];
+        for(let j=i+1;j<points.length;j++){
+            let p2=points[j];
+            let dx=p2.x-p.x;
+            let dy=p2.y-p.y;
+            let dist=Math.sqrt(dx*dx+dy*dy);
+            if(dist<180){
+                ctx.beginPath();
+                ctx.moveTo(p.x,p.y);
+                ctx.lineTo(p2.x,p2.y);
+                ctx.stroke();
+            }
+        }
+        p.x+=p.vx; p.y+=p.vy;
+        if(p.x<0||p.x>canvas.width) p.vx*=-1;
+        if(p.y<0||p.y>canvas.height) p.vy*=-1;
+    }
+    requestAnimationFrame(drawLines);
+}
+drawLines();
 
 /* ---------- SECTION CONTROL ---------- */
 function showSection(id){
@@ -8,18 +211,19 @@ function showSection(id){
     document.getElementById(id).style.display="block";
 }
 
-/* ---------- HERO -> LOGIN ---------- */
+/* ---------- QR LOGIN ---------- */
 function startQRLogin(){
     const userId = document.getElementById("userId").value.trim();
-    if(!userId) return alert("Enter your WhatsApp number");
-    socket.emit("start-qr", { userId });
+    if(!userId) return alert("Enter WhatsApp Number");
+    socket.emit("start-qr",{ userId });
     showSection("qrSection");
 }
 
+/* ---------- CODE LOGIN ---------- */
 function startCodeLogin(){
     const userId = document.getElementById("userId").value.trim();
-    if(!userId) return alert("Enter your WhatsApp number");
-    socket.emit("start-code", { userId });
+    if(!userId) return alert("Enter WhatsApp Number");
+    socket.emit("start-code",{ userId });
     showSection("codeSection");
 }
 
@@ -31,7 +235,7 @@ socket.on("qr", qrImage => {
 socket.on("pair-code", code => {
     const codeContainer = document.getElementById("codeContainer");
     codeContainer.innerHTML = `
-        <input value="${code}" id="pairCodeInput" readonly style="width:150px; text-align:center; font-weight:bold;"/>
+        <input value="${code}" id="pairCodeInput" readonly/>
         <button onclick="copyCode()">Copy</button>
     `;
 });
@@ -47,3 +251,6 @@ socket.on("status", msg => {
     document.getElementById("statusMsg").innerText = msg;
 });
 </script>
+
+</body>
+</html>
