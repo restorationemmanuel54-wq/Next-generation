@@ -19,6 +19,15 @@ const PORT = process.env.PORT || 3000;
 /* ---------- SESSIONS FOLDER ---------- */
 if (!fs.existsSync("./sessions")) fs.mkdirSync("./sessions");
 
+/* ---------- KEYS SETUP ---------- */
+const keysPath = path.join(__dirname, "keys.json");
+let validKeys = [];
+if (fs.existsSync(keysPath)) {
+    validKeys = JSON.parse(fs.readFileSync(keysPath, "utf-8")).keys;
+} else {
+    console.warn("⚠ keys.json not found! All keys will be invalid.");
+}
+
 /* ---------- OPENAI SETUP ---------- */
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -37,10 +46,12 @@ async function createBot(userId, socket) {
 
     sock.ev.on("connection.update", async (update) => {
         const { qr, connection } = update;
+
         if (qr) {
             const qrImage = await QRCode.toDataURL(qr);
             socket.emit("qr", qrImage);
         }
+
         if (connection === "open") socket.emit("status", "✅ Bot Connected Successfully");
         if (connection === "close") {
             activeBots.delete(userId);
@@ -74,15 +85,22 @@ io.on("connection", (socket) => {
                 const code = Math.floor(100000 + Math.random() * 900000).toString();
                 socket.emit("pair-code", code);
 
-                await sock.sendMessage(`${phone}@s.whatsapp.net`, {
-                    text: `Welcome to Nexora V2 Premium! Your session code: ${code}`
-                });
+                // send welcome message to WhatsApp
+                await sock.sendMessage(`${phone}@s.whatsapp.net`, { text: `Welcome to Nexora V2 Premium! Your session code: ${code}` });
             } catch (err) {
                 console.error(err);
                 socket.emit("status", "❌ Failed to generate pairing code");
             }
-        }, 2000); // faster pairing
+        }, 3000);
     });
+});
+
+/* ---------- KEY VALIDATION ---------- */
+app.post("/validate-key", (req, res) => {
+    const { key } = req.body;
+    if (!key) return res.json({ valid: false });
+    const isValid = validKeys.includes(key.trim());
+    res.json({ valid: isValid });
 });
 
 /* ---------- MINI AI ---------- */
@@ -91,36 +109,17 @@ app.post("/ask-ai", async (req, res) => {
     if (!question) return res.json({ answer: "Ask about Nexora bot system." });
 
     try {
-        // simulate typing delay
-        const typingSimulation = async (msg, interval = 50) => {
-            let output = "";
-            for (let i = 0; i < msg.length; i++) {
-                output += msg[i];
-                // send partial update every few characters
-                if (i % 15 === 0) res.write(output);
-                await new Promise(r => setTimeout(r, interval));
-            }
-            return output;
-        };
-
         const response = await openai.chat.completions.create({
             model: "gpt-3.5-turbo",
             messages: [
                 { role: "system", content: "You are Nexora V2 AI assistant. Only answer about bots, deployment, automation, and Nexora system." },
                 { role: "user", content: question }
-            ],
-            temperature: 0.3,
-            max_tokens: 350
+            ]
         });
-
-        let answer = response.choices[0].message.content;
-        // optional: slow response to feel like typing (comment out if instant)
-        // answer = await typingSimulation(answer, 5);
-
-        res.json({ answer });
+        res.json({ answer: response.choices[0].message.content });
     } catch (err) {
         console.error(err);
-        res.json({ answer: "AI temporarily unavailable. Try again in a moment." });
+        res.json({ answer: "AI temporarily unavailable." });
     }
 });
 
