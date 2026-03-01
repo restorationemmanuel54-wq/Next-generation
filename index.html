@@ -3,111 +3,93 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nexora V2 Premium</title>
+<title>Nexora V2 Panel</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 <script src="/socket.io/socket.io.js"></script>
-
 <style>
-body{margin:0;font-family:'Poppins',sans-serif;background:#000;color:#fff;text-align:center;position:relative;}
-canvas#bgLines{position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;}
-section{padding:80px 20px;display:none;transition: all 0.5s ease;}
-#hero{display:block;height:100vh;background:linear-gradient(180deg,#000,#111);}
-h1{font-size:40px;margin-top:30px;text-shadow:0 0 20px gold;}
-.scroll-text{margin-top:50px;opacity:0.7;animation:float 2s infinite alternate;}
-@keyframes float{from{transform:translateY(0px)}to{transform:translateY(10px)}}
-button{padding:12px 30px;border:none;border-radius:30px;background:gold;font-weight:600;cursor:pointer;margin-top:20px;transition: all 0.3s;box-shadow:0 0 15px gold;}
-button:hover{transform:scale(1.1);box-shadow:0 0 30px gold;}
-#miniAI{position:fixed;bottom:30px;right:30px;width:70px;height:70px;border-radius:50%;background:radial-gradient(circle,gold,orange);box-shadow:0 0 20px gold;animation:pulse 1.5s infinite;cursor:pointer;display:flex;justify-content:center;align-items:center;font-size:30px;font-weight:bold;}
-@keyframes pulse{0%{box-shadow:0 0 10px gold}50%{box-shadow:0 0 25px gold}100%{box-shadow:0 0 10px gold}}
-#hero img{width:200px;border-radius:15px;margin-top:50px;box-shadow:0 0 20px gold;}
-input{padding:10px;border-radius:10px;border:none;margin:10px;width:250px;outline:none;}
-#qrContainer img{margin-top:20px;width:250px;}
-#pairCode{margin-top:20px;font-weight:bold;color:gold;font-size:20px;}
-#status{margin-top:10px;font-weight:bold;color:#0f0;opacity:1;transition: all 0.5s ease;}
-#deployPopup{position:fixed;top:-100px;left:50%;transform:translateX(-50%);background:gold;color:#000;padding:20px 50px;border-radius:15px;font-weight:bold;box-shadow:0 0 20px gold;transition: all 0.8s ease;z-index:1001;}
-#deployPopup.show{top:50px;}
-#aiPopup{position:fixed;bottom:120px;right:30px;width:300px;max-width:90%;background:#111;border:2px solid gold;border-radius:15px;padding:20px;display:none;flex-direction:column;box-shadow:0 0 25px gold;z-index:1000;}
-#aiPopup textarea{width:100%;height:60px;border-radius:10px;border:none;padding:10px;resize:none;background:#222;color:#fff;}
-#aiPopup button{width:100%;margin-top:10px;}
+body{
+    margin:0;
+    font-family:'Poppins',sans-serif;
+    background:#000;
+    color:#fff;
+    text-align:center;
+}
+button{
+    padding:12px 25px;
+    border:none;
+    border-radius:25px;
+    background:gold;
+    font-weight:600;
+    cursor:pointer;
+    margin:10px;
+}
+#codeDisplay{
+    margin-top:15px;
+    font-size:18px;
+    color:#0f0;
+    font-weight:bold;
+}
+#qrContainer img{
+    margin-top:20px;
+    width:250px;
+}
+#status{
+    margin-top:15px;
+    font-weight:bold;
+    color:gold;
+}
 </style>
 </head>
 <body>
 
-<canvas id="bgLines"></canvas>
-
-<section id="hero">
-    <img src="https://i.postimg.cc/qqfKZcJ5/IMG-20260228-WA0002.png" alt="Nexora Logo">
-    <h1>Welcome to Nexora V2 Premium</h1>
-    <div class="scroll-text">⬇ Scroll Down To Deploy ⬇</div>
-    <br>
-    <button onclick="showSection('loginChoice')">Start Deployment</button>
-</section>
+<h1>Nexora V2 Bot Panel</h1>
 
 <section id="loginChoice">
-    <h2>Login</h2>
+    <h2>Login Method</h2>
     <button onclick="startQR()">QR Login</button>
     <br><br>
     <input id="phone" placeholder="+234XXXXXXXXXX">
     <button onclick="startCode()">Code Login</button>
-    <h3 id="pairCode"></h3>
-    <p id="status"></p>
+    <div id="codeDisplay"></div>
     <div id="qrContainer"></div>
+    <p id="status"></p>
 </section>
-
-<div id="deployPopup">🚀 Nexora Deployed!</div>
-
-<div id="miniAI" title="Ask Nexora AI">🤖</div>
-<div id="aiPopup">
-    <textarea id="aiQuestion" placeholder="Ask about Nexora bot..."></textarea>
-    <button onclick="askAI()">Ask AI</button>
-    <div id="aiAnswer" style="margin-top:10px;"></div>
-</div>
 
 <script>
 const socket = io();
 
-function showSection(id){document.querySelectorAll("section").forEach(sec=>sec.style.display="none");document.getElementById(id).style.display="block";}
-
-/* ---------- QR LOGIN ---------- */
 function startQR(){
-    const userId = "user"; // optional username for session
-    socket.emit("start-qr",{ userId });
+    socket.emit("start-qr");
 }
 
-/* ---------- CODE LOGIN ---------- */
 function startCode(){
-    const userId = "user"; // optional username
     const phone = document.getElementById("phone").value.trim();
     if(!phone) return alert("Enter phone number");
-    socket.emit("start-code",{ userId, phone });
+    socket.emit("start-code", { phone });
 }
 
-/* ---------- SOCKET LISTENERS ---------- */
-socket.on("qr",(qrImage)=>{ document.getElementById("qrContainer").innerHTML=`<img src="${qrImage}" alt="QR Code">`; });
-socket.on("pair-code",(code)=>{ document.getElementById("pairCode").innerText=`🔑 Session Code: ${code}`; });
-socket.on("status",(msg)=>{ document.getElementById("status").innerText=msg; });
+// Show QR image
+socket.on("qr", qrImage => {
+    document.getElementById("qrContainer").innerHTML = `<img src="${qrImage}" alt="QR Code">`;
+});
 
-/* ---------- MINI AI ---------- */
-const miniAI = document.getElementById("miniAI");
-const aiPopup = document.getElementById("aiPopup");
-miniAI.addEventListener("click",()=>{ aiPopup.style.display = aiPopup.style.display==="flex"?"none":"flex"; });
-async function askAI(){
-    const q = document.getElementById("aiQuestion").value.trim();
-    if(!q) return;
-    const res = await fetch("/ask-ai",{ method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({question:q}) });
-    const data = await res.json();
-    document.getElementById("aiAnswer").innerText=data.answer;
+// Show 8-digit pairing code with copy button
+socket.on("pair-code", code => {
+    document.getElementById("codeDisplay").innerHTML = `
+        8-digit Code: <span id="codeText">${code}</span>
+        <button onclick="copyCode()">Copy</button>`;
+});
+
+function copyCode(){
+    const text = document.getElementById("codeText").innerText;
+    navigator.clipboard.writeText(text);
+    alert("Code copied to clipboard!");
 }
 
-/* ---------- BACKGROUND LINES ---------- */
-const canvas = document.getElementById("bgLines");
-const ctx = canvas.getContext("2d");
-canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-let points = [];
-for(let i=0;i<15;i++){points.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,vx:(Math.random()-0.5)*0.2,vy:(Math.random()-0.5)*0.2});}
-function drawLines(){ctx.clearRect(0,0,canvas.width,canvas.height);ctx.strokeStyle='gold';ctx.lineWidth=0.8;
-points.forEach((p,i)=>{points.forEach((p2,j)=>{if(i<j){let dx=p2.x-p.x,dy=p2.y-p.y,dist=Math.sqrt(dx*dx+dy*dy);if(dist<180){ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p2.x,p2.y);ctx.stroke();}}});p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>canvas.width)p.vx*=-1;if(p.y<0||p.y>canvas.height)p.vy*=-1;});requestAnimationFrame(drawLines);}
-drawLines();
+// Status messages
+socket.on("status", msg => {
+    document.getElementById("status").innerText = msg;
+});
 </script>
 
 </body>
