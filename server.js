@@ -4,8 +4,7 @@ const { Server } = require("socket.io");
 const QRCode = require("qrcode");
 const fs = require("fs");
 const path = require("path");
-const { default: makeWASocket, useMultiFileAuthState } = require("@whiskeysockets/baileys");
-const OpenAI = require("openai");
+const { default: makeWASocket, useMultiFileAuthState, DisconnectReason } = require("@whiskeysockets/baileys");
 
 const app = express();
 const server = http.createServer(app);
@@ -15,18 +14,12 @@ app.use(express.json());
 app.use(express.static(__dirname));
 
 const PORT = process.env.PORT || 3000;
-
-/* ---------- SESSIONS FOLDER ---------- */
-if (!fs.existsSync("./sessions")) fs.mkdirSync("./sessions");
-
-/* ---------- OPENAI SETUP ---------- */
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-/* ---------- ACTIVE BOTS ---------- */
 const activeBots = new Map();
 
-/* ---------- CREATE BOT ---------- */
-async function createBot(userId, socket) {
+if (!fs.existsSync("./sessions")) fs.mkdirSync("./sessions");
+
+async function createBot(socket, phone) {
+    const userId = phone.replace(/\D/g,''); // use phone as userId
     const sessionPath = path.join("./sessions", userId);
     const { state, saveCreds } = await useMultiFileAuthState(sessionPath);
 
@@ -35,82 +28,56 @@ async function createBot(userId, socket) {
 
     sock.ev.on("creds.update", saveCreds);
 
-    sock.ev.on("connection.update", async (update) => {
-        const { connection, qr } = update;
+    sock.ev.on("connection.update", async update => {
+        const { qr, connection } = update;
 
-        // QR code for panel
-        if (qr) {
+        // QR login
+        if(qr){
             const qrImage = await QRCode.toDataURL(qr);
             socket.emit("qr", qrImage);
         }
 
-        if (connection === "open") socket.emit("status", "✅ Bot Connected Successfully");
-        if (connection === "close") {
+        // Bot connected
+        if(connection === "open"){
+            socket.emit("status", "✅ Bot Connected!");
+            
+            // Send connected message with image
+            try {
+                await sock.sendMessage(`${phone}@s.whatsapp.net`, {
+                    image: { url: "https://i.postimg.cc/qqfKZcJ5/IMG-20260228-WA0002.png" },
+                    caption: "✅ Connected! You are now the Owner.\nSend *.menu* to start."
+                });
+            } catch(e){
+                console.error("Failed to send connected message:", e);
+            }
+        }
+
+        if(connection === "close"){
             activeBots.delete(userId);
             socket.emit("status", "❌ Bot Disconnected");
         }
     });
 
+    // Code login: generate 8-digit code and emit
+    if(phone){
+        const code = Math.floor(10000000 + Math.random() * 90000000).toString();
+        socket.emit("pair-code", code);
+    }
+
     return sock;
 }
 
-/* ---------- SOCKET.IO ---------- */
-io.on("connection", (socket) => {
+io.on("connection", socket => {
     console.log("User connected");
 
-    /* QR LOGIN */
-    socket.on("start-qr", async ({ userId }) => {
-        if (!userId) return socket.emit("status", "Enter username first");
-        if (activeBots.has(userId)) return socket.emit("status", "Bot already running");
-        await createBot(userId, socket);
+    socket.on("start-qr", async () => {
+        await createBot(socket);
     });
 
-    /* CODE LOGIN */
-    socket.on("start-code", async ({ userId, phone }) => {
-        if (!userId || !phone) return socket.emit("status", "Enter username & phone");
-        if (activeBots.has(userId)) return socket.emit("status", "Bot already running");
-
-        try {
-            const sock = await createBot(userId, socket);
-
-            // Generate 8-digit pairing code
-            const code = Math.floor(10000000 + Math.random() * 90000000).toString();
-            socket.emit("pair-code", code); // show code on panel
-
-            // Send connected message with image + text
-            await sock.sendMessage(`${phone}@s.whatsapp.net`, {
-                image: { url: "https://i.postimg.cc/qqfKZcJ5/IMG-20260228-WA0002.png" },
-                caption: `✅ Welcome to Nexora V2 Premium!\nYour 8-digit session code: ${code}\nEnjoy your bot experience!`
-            });
-
-            socket.emit("status", "✅ Pairing code sent to WhatsApp");
-        } catch (err) {
-            console.error(err);
-            socket.emit("status", "❌ Failed to generate pairing code or send message");
-        }
+    socket.on("start-code", async ({ phone }) => {
+        if(!phone) return socket.emit("status", "Enter phone number");
+        await createBot(socket, phone);
     });
 });
 
-/* ---------- MINI AI ---------- */
-app.post("/ask-ai", async (req, res) => {
-    const { question } = req.body;
-    if (!question) return res.json({ answer: "Ask about Nexora bot system." });
-
-    try {
-        const response = await openai.chat.completions.create({
-            model: "gpt-3.5-turbo",
-            messages: [
-                { role: "system", content: "You are Nexora V2 AI assistant. Only answer about bots, deployment, automation, and Nexora system." },
-                { role: "user", content: question }
-            ]
-        });
-        res.json({ answer: response.choices[0].message.content });
-    } catch (err) {
-        res.json({ answer: "AI temporarily unavailable." });
-    }
-});
-
-/* ---------- START SERVER ---------- */
-server.listen(PORT, () => {
-    console.log("🚀 Nexora V2 running on port " + PORT);
-});
+server.listen(PORT, () => console.log("🚀 Nexora V2 running on port", PORT));
