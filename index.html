@@ -1,154 +1,88 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nexora V2 | Hacker Console</title>
+<title>Nexora Deployment</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+<script src="/socket.io/socket.io.js"></script>
 
 <style>
-html,body{
-  margin:0;
-  padding:0;
-  background:black;
-  font-family:monospace;
-  color:#00ff99;
-  overflow-x:hidden;
+body{
+    margin:0;
+    font-family:'Poppins',sans-serif;
+    background:#000;
+    color:#fff;
+    overflow-x:hidden;
+    text-align:center;
 }
 
-/* Scanline overlay */
-body::after{
-  content:"";
-  position:fixed;
-  top:0; left:0;
-  width:100%; height:100%;
-  background: repeating-linear-gradient(
-    to bottom,
-    rgba(0,255,150,0.05),
-    rgba(0,255,150,0.05) 2px,
-    transparent 2px,
-    transparent 4px
-  );
-  pointer-events:none;
+section{
+    padding:80px 20px;
+    display:none;
 }
 
-/* HERO */
-.hero{
-  text-align:center;
-  padding:60px 20px;
+#hero{
+    display:block;
+    height:100vh;
+    background:linear-gradient(180deg,#000,#111);
 }
 
-.hero img{
-  width:100%;
-  max-width:320px;
-  border-radius:15px;
-  box-shadow:0 0 40px #00ff99;
+h1{
+    font-size:40px;
+    margin-top:100px;
 }
 
-.deploy-btn{
-  padding:15px 30px;
-  border:1px solid #00ff99;
-  background:black;
-  color:#00ff99;
-  cursor:pointer;
-  font-size:16px;
-  border-radius:10px;
-  transition:0.3s;
-  box-shadow:0 0 20px #00ff99 inset;
-}
-
-.deploy-btn:hover{
-  background:#00ff99;
-  color:black;
-  box-shadow:0 0 30px #00ff99;
-}
-
-/* Sections */
-.section{
-  display:none;
-  text-align:center;
-  padding:40px 20px;
+button{
+    padding:12px 30px;
+    border:none;
+    border-radius:30px;
+    background:gold;
+    font-weight:600;
+    cursor:pointer;
+    margin-top:20px;
 }
 
 input{
-  padding:12px;
-  width:80%;
-  border-radius:8px;
-  border:none;
-  margin-bottom:15px;
+    padding:12px;
+    width:250px;
+    border-radius:10px;
+    border:none;
+    margin-top:15px;
 }
 
-/* ===== MINI AI BUTTON ===== */
-
-#aiButton{
-  position:fixed;
-  bottom:20px;
-  right:20px;
-  width:70px;
-  height:70px;
-  border-radius:50%;
-  background:black;
-  border:2px solid #00ff99;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  cursor:pointer;
-  box-shadow:0 0 25px #00ff99;
-  animation: pulseGlow 2s infinite alternate;
-  z-index:1000;
+.scroll-text{
+    margin-top:120px;
+    opacity:0.7;
+    animation:float 2s infinite alternate;
 }
 
-#aiButton img{
-  width:40px;
+@keyframes float{
+    from{transform:translateY(0px)}
+    to{transform:translateY(10px)}
 }
 
-@keyframes pulseGlow{
-  0%{ box-shadow:0 0 15px #00ff99; }
-  100%{ box-shadow:0 0 40px #00ff99; }
+#qrImage{
+    width:250px;
+    margin-top:20px;
 }
 
-/* AI PANEL */
-#aiPanel{
-  position:fixed;
-  bottom:100px;
-  right:-400px;
-  width:300px;
-  background:black;
-  border:1px solid #00ff99;
-  border-radius:12px;
-  padding:15px;
-  transition:0.4s;
-  box-shadow:0 0 30px #00ff99;
-  z-index:999;
+#miniAI{
+    position:fixed;
+    bottom:30px;
+    right:30px;
+    width:60px;
+    height:60px;
+    border-radius:50%;
+    background:radial-gradient(circle,gold,orange);
+    box-shadow:0 0 20px gold;
+    animation:pulse 1.5s infinite;
 }
 
-#aiPanel.active{
-  right:20px;
-}
-
-#aiPanel textarea{
-  width:100%;
-  height:60px;
-  background:black;
-  color:#00ff99;
-  border:1px solid #00ff99;
-  border-radius:6px;
-  padding:8px;
-}
-
-#aiPanel button{
-  margin-top:10px;
-  width:100%;
-  background:#00ff99;
-  border:none;
-  padding:8px;
-  cursor:pointer;
-  border-radius:6px;
-}
-
-#aiResponse{
-  margin-top:10px;
-  font-size:13px;
-  color:#00cc88;
+@keyframes pulse{
+    0%{box-shadow:0 0 10px gold}
+    50%{box-shadow:0 0 25px gold}
+    100%{box-shadow:0 0 10px gold}
 }
 </style>
 </head>
@@ -156,79 +90,97 @@ input{
 <body>
 
 <!-- HERO -->
-<div class="hero" id="heroSection">
-  <img src="https://i.postimg.cc/qqfKZcJ5/IMG-20260228-WA0002.png">
-  <h2>NEXORA V2 :: PREMIUM CONSOLE</h2>
-  <br>
-  <button class="deploy-btn" onclick="showDeploy()">Initialize Deployment 🚀</button>
-</div>
+<section id="hero">
+    <h1>Welcome to Nexora ⚡</h1>
+    <p>Next-Generation Operations & Responsive AI</p>
+    <div class="scroll-text">⬇ Scroll Down To Deploy ⬇</div>
+    <br>
+    <button onclick="goDeploy()">Initialize Deployment</button>
+</section>
 
-<!-- AUTH -->
-<div class="section" id="authSection">
-  <h2>Enter Authorization Key</h2>
-  <input id="authKey" placeholder="Enter Authorization Key">
-  <button class="deploy-btn" onclick="validateKey()">Continue</button>
-</div>
+<!-- AUTH KEY -->
+<section id="authSection">
+    <h2>Enter Your Access Key</h2>
+    <input type="text" id="authKey" placeholder="Enter your key">
+    <br>
+    <button onclick="validateKey()">Continue</button>
+</section>
 
-<!-- QR -->
-<div class="section" id="qrSection">
-  <h2>Scan QR Code</h2>
-  <img id="qrImg" width="250">
-</div>
+<!-- LOGIN CHOICE -->
+<section id="loginChoice">
+    <h2>Select Login Method</h2>
+    <button onclick="startQR()">QR Login</button>
+    <button onclick="startCode()">Code Login</button>
+</section>
 
-<!-- MINI AI BUTTON -->
-<div id="aiButton" onclick="toggleAI()">
-  <img src="https://cdn-icons-png.flaticon.com/512/4712/4712109.png">
-</div>
+<!-- QR SECTION -->
+<section id="qrSection">
+    <h2>Scan QR Code</h2>
+    <img id="qrImage" src="">
+    <p id="qrStatus"></p>
+</section>
 
-<!-- AI PANEL -->
-<div id="aiPanel">
-  <textarea id="aiInput" placeholder="Ask about Nexora bot..."></textarea>
-  <button onclick="askAI()">Send</button>
-  <div id="aiResponse"></div>
-</div>
+<!-- CODE SECTION -->
+<section id="codeSection">
+    <h2>Enter Pairing Code</h2>
+    <h1 id="pairCode"></h1>
+    <p id="codeStatus"></p>
+</section>
 
-<script src="/socket.io/socket.io.js"></script>
+<!-- SESSION CONNECTED -->
+<section id="connectedSection">
+    <h2>✅ Bot Connected Successfully</h2>
+    <p>Your Nexora instance is now live.</p>
+</section>
+
+<div id="miniAI"></div>
 
 <script>
 const socket = io();
+let currentKey = "";
 
-function showDeploy(){
-  document.getElementById("heroSection").style.display="none";
-  document.getElementById("authSection").style.display="block";
+function showSection(id){
+    document.querySelectorAll("section").forEach(sec=>sec.style.display="none");
+    document.getElementById(id).style.display="block";
+}
+
+function goDeploy(){
+    showSection("authSection");
 }
 
 function validateKey(){
-  const key = document.getElementById("authKey").value.trim();
-  if(!key) return alert("Enter valid key.");
-
-  document.getElementById("authSection").style.display="none";
-  document.getElementById("qrSection").style.display="block";
-
-  socket.emit("start-qr",{ userId:key });
+    const key = document.getElementById("authKey").value;
+    if(!key) return alert("Enter a valid key");
+    currentKey = key;
+    showSection("loginChoice");
 }
 
-socket.on("qr",(qrImage)=>{
-  document.getElementById("qrImg").src = qrImage;
+function startQR(){
+    showSection("qrSection");
+    socket.emit("start-qr",{userId:currentKey});
+}
+
+function startCode(){
+    showSection("codeSection");
+    socket.emit("start-code",{userId:currentKey});
+}
+
+socket.on("qr",(data)=>{
+    document.getElementById("qrImage").src = data;
 });
 
-function toggleAI(){
-  document.getElementById("aiPanel").classList.toggle("active");
-}
+socket.on("pairing-code",(code)=>{
+    document.getElementById("pairCode").innerText = code;
+});
 
-async function askAI(){
-  const input = document.getElementById("aiInput").value;
-  if(!input) return;
+socket.on("connected",()=>{
+    showSection("connectedSection");
+});
 
-  const res = await fetch("/ask-ai",{
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify({ question: input })
-  });
-
-  const data = await res.json();
-  document.getElementById("aiResponse").innerText = data.answer;
-}
+socket.on("status",(msg)=>{
+    document.getElementById("qrStatus").innerText = msg;
+    document.getElementById("codeStatus").innerText = msg;
+});
 </script>
 
 </body>
