@@ -18,7 +18,6 @@ body{
     position:relative;
 }
 
-/* BACKGROUND LINES */
 canvas#bgLines{
     position:fixed;
     top:0;
@@ -133,7 +132,6 @@ input{
     transition: all 0.5s ease;
 }
 
-/* DEPLOY BUTTON ANIMATION */
 #deployBtn{
     background:linear-gradient(45deg,gold,orange);
     animation:shine 2s infinite alternate;
@@ -144,7 +142,6 @@ input{
     to{box-shadow:0 0 30px orange}
 }
 
-/* MINI AI POPUP */
 #aiPopup{
     position:fixed;
     bottom:120px;
@@ -177,7 +174,6 @@ input{
     margin-top:10px;
 }
 
-/* DEPLOY POPUP */
 #deployPopup{
     position:fixed;
     top:-100px;
@@ -200,10 +196,8 @@ input{
 </head>
 <body>
 
-<!-- BACKGROUND LINES -->
 <canvas id="bgLines"></canvas>
 
-<!-- HERO -->
 <section id="hero">
     <img src="https://i.postimg.cc/qqfKZcJ5/IMG-20260228-WA0002.png" alt="Nexora Logo">
     <h1>Welcome to Nexora V2 Premium</h1>
@@ -212,7 +206,6 @@ input{
     <button onclick="goAuth()">Initialize Deployment</button>
 </section>
 
-<!-- AUTH KEY SECTION -->
 <section id="authKey">
     <h2>Enter Authorization Key</h2>
     <input id="authInput" placeholder="Enter Your Key">
@@ -221,7 +214,6 @@ input{
     <p id="statusMsg"></p>
 </section>
 
-<!-- LOGIN CHOICE -->
 <section id="loginChoice">
     <h2>Choose Login Method</h2>
     <button onclick="startQR()">QR Login</button>
@@ -235,7 +227,6 @@ input{
     <p id="status"></p>
 </section>
 
-<!-- SESSION DEPLOY -->
 <section id="sessionDeploy">
     <h2>Session ID</h2>
     <input id="sessionId" placeholder="Paste Session ID Here">
@@ -246,10 +237,8 @@ input{
     <a href="https://whatsapp.com/channel/0029VbCFEZv60eBdlqXqQz20" target="_blank" style="color:gold;">Join our WhatsApp Channel</a>
 </section>
 
-<!-- DEPLOY POPUP -->
 <div id="deployPopup">🚀 Nexora Deployed!</div>
 
-<!-- MINI AI -->
 <div id="miniAI" title="Ask Nexora AI">🤖</div>
 <div id="aiPopup">
     <textarea id="aiQuestion" placeholder="Ask about Nexora bot..."></textarea>
@@ -260,119 +249,81 @@ input{
 <script>
 const socket = io();
 
-/* ---------- BACKGROUND LINES SMOOTH FUTURISTIC ---------- */
+/* ---------- BACKGROUND LINES REDUCED ---------- */
 const canvas = document.getElementById("bgLines");
 const ctx = canvas.getContext("2d");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
 let points = [];
-for(let i=0;i<40;i++){
+for(let i=0;i<10;i++){ // 40 -> 10 points (~77% reduction)
     points.push({
-        x:Math.random()*canvas.width,
-        y:Math.random()*canvas.height,
-        vx:(Math.random()-0.5)*0.3,
-        vy:(Math.random()-0.5)*0.3
+        x: Math.random()*canvas.width,
+        y: Math.random()*canvas.height,
+        vx: (Math.random()-0.5)*0.15,
+        vy: (Math.random()-0.5)*0.15
     });
 }
 
 function drawLines(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
-    ctx.strokeStyle='gold';
-    ctx.lineWidth=0.8;
+    ctx.strokeStyle='rgba(255,215,0,0.6)';
+    ctx.lineWidth=1;
 
     for(let i=0;i<points.length;i++){
-        let p=points[i];
+        let p = points[i];
         for(let j=i+1;j<points.length;j++){
-            let p2=points[j];
-            let dx=p2.x-p.x;
-            let dy=p2.y-p.y;
-            let dist=Math.sqrt(dx*dx+dy*dy);
-            if(dist<180){
+            let p2 = points[j];
+            let dx = p2.x-p.x;
+            let dy = p2.y-p.y;
+            let dist = Math.sqrt(dx*dx + dy*dy);
+            if(dist < 250){
                 ctx.beginPath();
                 ctx.moveTo(p.x,p.y);
                 ctx.lineTo(p2.x,p2.y);
                 ctx.stroke();
             }
         }
-        p.x+=p.vx;
-        p.y+=p.vy;
-        if(p.x<0||p.x>canvas.width) p.vx*=-1;
-        if(p.y<0||p.y>canvas.height) p.vy*=-1;
+        p.x += p.vx;
+        p.y += p.vy;
+        if(p.x<0 || p.x>canvas.width) p.vx*=-1;
+        if(p.y<0 || p.y>canvas.height) p.vy*=-1;
     }
     requestAnimationFrame(drawLines);
 }
 drawLines();
 
 /* ---------- SECTION CONTROL ---------- */
-function showSection(id){
-    document.querySelectorAll("section").forEach(sec=>sec.style.display="none");
-    document.getElementById(id).style.display="block";
-}
-
-/* ---------- HERO -> AUTH ---------- */
+function showSection(id){ document.querySelectorAll("section").forEach(sec=>sec.style.display="none"); document.getElementById(id).style.display="block"; }
 function goAuth(){ showSection("authKey"); }
-
-/* ---------- VALIDATE KEY ---------- */
-function validateKey(){
-    const key = document.getElementById("authInput").value.trim();
-    if(!key) return alert("Enter your key");
-    if(key==="VALIDKEY123"){
-        document.getElementById("statusMsg").innerText="✅ Key Valid!";
-        document.getElementById("statusMsg").style.opacity=1;
-        setTimeout(()=>{ showSection("loginChoice"); },800);
-    } else{
-        document.getElementById("statusMsg").innerText="❌ Invalid or expired key!";
-        document.getElementById("statusMsg").style.opacity=1;
-    }
-}
-
-/* ---------- QR LOGIN ---------- */
-function startQR(){
-    const userId = document.getElementById("authInput").value.trim();
-    if(!userId) return alert("Enter username first");
-    socket.emit("start-qr",{ userId });
-}
-
-/* ---------- CODE LOGIN ---------- */
-function startCode(){
-    const userId = document.getElementById("authInput").value.trim();
-    const phone = document.getElementById("phone").value.trim();
-    if(!userId || !phone) return alert("Enter username & phone");
-    socket.emit("start-code",{ userId, phone });
-}
-
-/* ---------- FINISH LOGIN ---------- */
+function validateKey(){ const key = document.getElementById("authInput").value.trim(); if(!key)return alert("Enter your key"); const status=document.getElementById("statusMsg"); if(key==="VALIDKEY123"){status.innerText="✅ Key Valid!"; status.style.opacity=1; setTimeout(()=>{showSection("loginChoice");},800);} else {status.innerText="❌ Invalid or expired key!"; status.style.opacity=1;} }
+function startQR(){ const userId=document.getElementById("authInput").value.trim(); if(!userId)return alert("Enter username first"); socket.emit("start-qr",{userId}); }
+function startCode(){ const userId=document.getElementById("authInput").value.trim(); const phone=document.getElementById("phone").value.trim(); if(!userId||!phone)return alert("Enter username & phone"); socket.emit("start-code",{userId,phone}); }
 function finishLogin(){ showSection("sessionDeploy"); }
-
-/* ---------- DEPLOY SESSION ---------- */
-function deploySession(){
-    const sessionId = document.getElementById("sessionId").value.trim();
-    if(!sessionId) return alert("Enter session ID");
-
-    const popup = document.getElementById("deployPopup");
-    popup.classList.add("show");
-
-    setTimeout(()=>{
-        popup.classList.remove("show");
-    },3000);
-}
+function deploySession(){ const sessionId=document.getElementById("sessionId").value.trim(); if(!sessionId)return alert("Enter session ID"); const popup=document.getElementById("deployPopup"); popup.classList.add("show"); setTimeout(()=>{popup.classList.remove("show");},3000); }
 
 /* ---------- SOCKET LISTENERS ---------- */
 socket.on("qr",(qrImage)=>{ document.getElementById("qrContainer").innerHTML=`<img src="${qrImage}" alt="QR Code">`; });
 socket.on("pair-code",(code)=>{ document.getElementById("pairCode").innerText="Pairing Code: "+code; });
 socket.on("status",(msg)=>{ document.getElementById("status").innerText=msg; });
 
-/* ---------- MINI AI ---------- */
+/* ---------- MINI AI FIXED ---------- */
 const miniAI = document.getElementById("miniAI");
 const aiPopup = document.getElementById("aiPopup");
 miniAI.addEventListener("click",()=>{ aiPopup.style.display = aiPopup.style.display==="flex"?"none":"flex"; });
+
 async function askAI(){
-    const q = document.getElementById("aiQuestion").value.trim();
-    if(!q) return;
-    const res = await fetch("/ask-ai",{ method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({question:q}) });
-    const data = await res.json();
-    document.getElementById("aiAnswer").innerText=data.answer;
+    const q=document.getElementById("aiQuestion").value.trim();
+    if(!q) return alert("Type a question first");
+    try{
+        const res = await fetch("/ask-ai",{method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({question:q})});
+        if(!res.ok) throw new Error("Network error");
+        const data = await res.json();
+        document.getElementById("aiAnswer").innerText = data.answer || "AI could not answer";
+    }catch(e){
+        document.getElementById("aiAnswer").innerText="❌ AI temporarily unavailable";
+        console.error(e);
+    }
 }
 </script>
 
