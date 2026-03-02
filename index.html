@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Link WhatsApp</title>
+</head>
+<body>
+
+<h2>Link WhatsApp Device</h2>
+
+<input type="text" id="phone" placeholder="Enter number e.g 2348012345678">
+<button onclick="generateCode()">Generate Code</button>
+
+<h3 id="result"></h3>
+
+<script>
+async function generateCode() {
+    const phone = document.getElementById("phone").value;
+    const result = document.getElementById("result");
+
+    result.innerText = "Generating...";
+
+    try {
+        const response = await fetch("/generate-code", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ phone })
+        });
+
+        const data = await response.json();
+
+        if (data.code) {
+            result.innerText = "Your Pairing Code: " + data.code;
+        } else if (data.message) {
+            result.innerText = data.message;
+        } else {
+            result.innerText = data.error;
+        }
+
+    } catch (error) {
+        result.innerText = "Error connecting to server";
+    }
+}
+</script>
+
+</body>
+</html>
